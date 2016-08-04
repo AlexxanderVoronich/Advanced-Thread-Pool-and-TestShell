@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/IconExit.png</file>
+        <file>images/IconThreadPool.png</file>
+        <file>images/message.xpm</file>
+        <file>images/warning.xpm</file>
+    </qresource>
+</RCC>
