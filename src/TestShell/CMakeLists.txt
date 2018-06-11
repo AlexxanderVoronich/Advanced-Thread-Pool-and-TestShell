@@ -4,7 +4,7 @@ project(TestShell)
 #set(CMAKE_CXX_STANDARD 11)
 add_definitions(-std=c++11)
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
-
+set (PROJECTNAME_ARCHITECTURE "x86")
 # Tell CMake to run moc when necessary:
 #set(CMAKE_AUTOMOC ON)
 #set(CMAKE_AUTOUIC ON)

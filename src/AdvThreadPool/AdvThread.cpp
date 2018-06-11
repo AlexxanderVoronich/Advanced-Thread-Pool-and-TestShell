@@ -44,7 +44,7 @@ bool CAdvThread::appendRunnableTask(runnable_closure run, int run_type)
     taskArray.push(run);
     conditionVariable.notify_one();
 
-    auto currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 
     auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTimeOfTaskQuantityAnalize).count();
     if(delta >= 1000)
@@ -78,7 +78,12 @@ size_t CAdvThread::getAllTaskCount()
     return (currentRunnableClosure)? taskArray.size()+1: taskArray.size();
 }
 
-std::chrono::system_clock::time_point CAdvThread::getLastTimeOfTaskLaunch() const
+/*std::chrono::system_clock::time_point CAdvThread::getLastTimeOfTaskLaunch() const
+{
+    return lastTimeOfTaskLaunch;
+}*/
+
+std::chrono::time_point<std::chrono::high_resolution_clock> CAdvThread::getLastTimeOfTaskLaunch() const
 {
     return lastTimeOfTaskLaunch;
 }
@@ -103,7 +108,7 @@ void CAdvThread::getCurrentHandle()
 
 }
 
-bool CAdvThread::setAffinity()
+void CAdvThread::setAffinity()
 {
 #ifdef Q_OS_LINUX
     if(threadHandle != 0)
@@ -176,7 +181,7 @@ int CAdvThread::getRunType()
     return runType;
 }
 
-bool CAdvThread::setCoreMask(int mask)
+void CAdvThread::setCoreMask(int mask)
 {
     affinityData.coreMask = mask;
     affinityData.coreChanged = 1;

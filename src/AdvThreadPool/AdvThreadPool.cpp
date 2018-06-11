@@ -179,7 +179,7 @@ int CAdvThreadPool::startPoolMainFunction()
 
 
         //notification about suspicious behavior
-        auto currentTime = std::chrono::high_resolution_clock::now();
+        std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 
         for (auto &it : threadsArray)
         {
@@ -478,7 +478,7 @@ void CAdvThreadPool::addRepeatedTask(runnable_closure task, int ID, int timePeri
 
 bool CAdvThreadPool::stopRepeatTask(int taskID)
 {
-    getInstance().stopRunnable_RepeatTask(taskID);
+    return getInstance().stopRunnable_RepeatTask(taskID);
 }
 
 bool CAdvThreadPool::stopRunnable_RepeatTask(int taskID)

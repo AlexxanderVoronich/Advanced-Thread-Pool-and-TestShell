@@ -38,8 +38,11 @@ private://fields
     eThreadType threadType = eThreadType::THREAD_NO_TYPE;
     int coreQuantity = 0;
     int averageTaskQuantity = 0;
-    std::chrono::system_clock::time_point lastTimeOfTaskQuantityAnalize;
-    std::chrono::system_clock::time_point lastTimeOfTaskLaunch;
+    //std::chrono::system_clock::time_point lastTimeOfTaskQuantityAnalize;
+    //std::chrono::system_clock::time_point lastTimeOfTaskLaunch;
+
+    std::chrono::high_resolution_clock::time_point lastTimeOfTaskQuantityAnalize;
+    std::chrono::high_resolution_clock::time_point lastTimeOfTaskLaunch;
 
     SAffinityData affinityData;
 
@@ -58,7 +61,9 @@ public://methods
     bool appendRunnableTask(runnable_closure run, int run_type);
     size_t getTaskCount();
     size_t getAllTaskCount();
-    std::chrono::system_clock::time_point getLastTimeOfTaskLaunch()const;
+    //std::chrono::system_clock::time_point getLastTimeOfTaskLaunch()const;
+    std::chrono::time_point<std::chrono::high_resolution_clock> getLastTimeOfTaskLaunch() const;
+
     bool isReadyForSend_WarningAboutShortTaskFreeze = false;
 
     bool isEmpty();
@@ -71,12 +76,12 @@ public://methods
     int getRunType();
     void setThreadType(eThreadType type){ threadType = type;}
     eThreadType getThreadType(){ return threadType;}
-    bool setCoreMask(int mask);
+    void setCoreMask(int mask);
 
 private://methods
     void threadMainFunction();
     void getCurrentHandle();
-    bool setAffinity();
+    void setAffinity();
 };
 
 typedef std::shared_ptr<CAdvThread> adv_thread_ptr;

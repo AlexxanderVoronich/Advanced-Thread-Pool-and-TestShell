@@ -4,7 +4,7 @@ project(AdvThreadPool)
 #set(CMAKE_CXX_STANDARD 11)
 add_definitions(-std=c++11)
 set(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/lib")
-
+set (PROJECTNAME_ARCHITECTURE "x86")
 #set(CMAKE_AUTOMOC ON)
 #set(CMAKE_AUTOUIC ON)
 #set(AUTORCC ON)

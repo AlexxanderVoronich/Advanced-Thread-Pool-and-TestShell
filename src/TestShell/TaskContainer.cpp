@@ -73,7 +73,7 @@ qint32 ShortTaskGenerator::generatorMainFunction(qint32 shortTaskQuantity)
 
 qint32 ShortTaskGenerator::shortTaskFunction(QString taskName)
 {
-
+    return 0;
 }
 
 void ShortTaskGenerator::stopGenerator()
