@@ -7,11 +7,12 @@
 #include <QToolBar>
 #include <AdvThreadPool/WarningJournal.h>
 
-namespace Ui {
-class AdvancedThreadPoolTestShell;
+namespace Ui 
+{
+    class AdvancedThreadPoolTestShell;
 }
 
-class CAdvPoolGUI;
+class cAdvPoolGUI;
 
 class MainWindow : public QMainWindow
 {
@@ -23,11 +24,11 @@ private://fields
     QAction* threadPoolAction = nullptr;
     QAction* exitAction = nullptr;
 
-    CAdvPoolGUI* pThreadPoolDialog = nullptr;
+    cAdvPoolGUI* pThreadPoolDialog = nullptr;
     Tasks* pTaskContainer = nullptr;
     ShortTaskGenerator* pShortTaskGenerator = nullptr;
 
-    WarningJournal* warningJournal = nullptr;
+    cWarningJournal* warningJournal = nullptr;
 
 public://methods
     explicit MainWindow(QWidget *parent = 0);

@@ -13,8 +13,8 @@ class QObjectSerializer
 {
 public:
     QObjectSerializer();
-    static bool serialize(QString filePath, QObject* pObject);
-    static bool deserialize(QString filePath, QObject* pObject);
+    static bool serialize(QString _filePath, QObject* _object);
+    static bool deserialize(QString _filePath, QObject* _object);
 };
 
 #endif // QOBJECTSERIALIZER_H

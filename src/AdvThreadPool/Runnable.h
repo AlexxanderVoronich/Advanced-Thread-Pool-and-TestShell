@@ -21,9 +21,9 @@ template<int ...S> struct gens<0, S...>{ typedef seq<S...> type; };
 ///base template class-wrapper (pattern Command)
 ///
 template<typename T,  typename R, typename ...Args>
-class CRunnable
+class cRunnable
 {
-    friend class CAdvThreadPool;
+    friend class cAdvThreadPool;
 
 public://typedefs
     typedef R _RETURN_TYPE;
@@ -31,56 +31,56 @@ public://typedefs
     typedef void (T::*StopRunnableSign)();
 
 private://data
-    T* m_pProcessor = nullptr; //pointer to object-container of runnable task
-    RunnableFunction m_RunFunction = nullptr;//pointer to runnable task
-    StopRunnableSign m_StopFunction = nullptr;//pointer to stop_function of runnable task
-    QString m_Description;//description of runnable task
-    int m_iRunnableType = EMPTY_TASK;//LONG_TASK,SHORT_TASK or REPEAT_TASK
-    std::tuple<Args...> m_Params;//parameters for tranfer to runnable task
-    int m_iRepeatTime = 0;//Rerun time for REPEAT_TASK
-    bool deleteExtraThreadAfterStopRunnable = true;//only for CLongTask in case EXTRA_THREAD
+    T* m_processor = nullptr; //pointer to object-container of runnable task
+    RunnableFunction m_runFunction = nullptr;//pointer to runnable task
+    StopRunnableSign m_stopFunction = nullptr;//pointer to stop_function of runnable task
+    QString m_description;//description of runnable task
+    int m_runnableType = EMPTY_TASK;//LONG_TASK,SHORT_TASK or REPEAT_TASK
+    std::tuple<Args...> m_params;//parameters for tranfer to runnable task
+    int m_repeatTime = 0;//Rerun time for REPEAT_TASK
+    bool m_deleteExtraThreadAfterStopRunnable = true;//only for CLongTask in case EXTRA_THREAD
 
 public://methods
-    CRunnable(T* processor,
-                RunnableFunction runFunction,
-                eRunnableType runType = SHORT_TASK,
-                std::tuple<Args...> params  = std::make_tuple(),
-                StopRunnableSign stopFunction = nullptr,
-                QString description = "",
-                int repeatTime = -1)
-        :m_pProcessor(processor),
-        m_RunFunction(runFunction),
-        m_StopFunction(stopFunction),
-        m_iRunnableType(runType),
-        m_Params(params),
-        m_iRepeatTime(repeatTime)
+    cRunnable(T* _processor,
+                RunnableFunction _runFunction,
+                eRunnableType _runType = SHORT_TASK,
+                std::tuple<Args...> _params  = std::make_tuple(),
+                StopRunnableSign _stopFunction = nullptr,
+                QString _description = "",
+                int _repeatTime = -1)
+        :m_processor(_processor),
+        m_runFunction(_runFunction),
+        m_stopFunction(_stopFunction),
+        m_runnableType(_runType),
+        m_params(_params),
+        m_repeatTime(_repeatTime)
     {
-        m_Description = description;
+        m_description = _description;
     }
 
-    virtual ~CRunnable(){;}
+    virtual ~cRunnable(){;}
 
     void stopRunnable()
     {
-        (m_pProcessor->*m_StopFunction)();
+        (m_processor->*m_stopFunction)();
     }
 
-    QString getDescription(){return m_Description;}
-    int getType(){return m_iRunnableType;}
+    QString getDescription(){return m_description;}
+    int getType(){return m_runnableType;}
     bool updateLongTypeToExtra()
     {
-        if(m_iRunnableType == eRunnableType::LONG_TASK)
+        if(m_runnableType == eRunnableType::LONG_TASK)
         {
-            m_iRunnableType = eRunnableType::LONG_TASK_EXTRA;
+            m_runnableType = eRunnableType::LONG_TASK_EXTRA;
             return true;
         }
         else
             return false;
     }
-    int getRepeatTime(){return m_iRepeatTime;}
-    T* getProcessor(){return m_pProcessor;}
-    void setDeleteExtraThreadSign(bool sign){deleteExtraThreadAfterStopRunnable = sign;}
-    bool getDeleteExtraThreadSign(){return deleteExtraThreadAfterStopRunnable;}
+    int getRepeatTime(){return m_repeatTime;}
+    T* getProcessor(){return m_processor;}
+    void setDeleteExtraThreadSign(bool _sign){m_deleteExtraThreadAfterStopRunnable = _sign;}
+    bool getDeleteExtraThreadSign(){return m_deleteExtraThreadAfterStopRunnable;}
 
 private://methods
     int run()
@@ -91,7 +91,7 @@ private://methods
     template<int ...S>
     int callThread(seq<S...>)
     {
-        return (m_pProcessor->*m_RunFunction)(std::get<S>(m_Params) ...);
+        return (m_processor->*m_runFunction)(std::get<S>(m_params) ...);
     }
 
 };
@@ -100,14 +100,14 @@ private://methods
 ///derived template class-wrapper (pattern Command)
 ///
 template<typename T, typename R, typename ...Args>
-class CShortTask: public CRunnable<T, R, Args...>
+class cShortTask: public cRunnable<T, R, Args...>
 {
 public://methods
-    CShortTask(T* processor,
-                typename CRunnable<T,R,Args...>::RunnableFunction runFunction,
-                QString description = "Short task",
-                std::tuple<Args...> params = std::make_tuple())
-        : CRunnable<T,R,Args...>(processor, runFunction, SHORT_TASK, params, nullptr, description, -1)
+    cShortTask(T* _processor,
+                typename cRunnable<T,R,Args...>::RunnableFunction _runFunction,
+                QString _description = "Short task",
+                std::tuple<Args...> _params = std::make_tuple())
+        : cRunnable<T,R,Args...>(_processor, _runFunction, SHORT_TASK, _params, nullptr, _description, -1)
     {}
 };
 
@@ -115,15 +115,15 @@ public://methods
 ///derived template class-wrapper (pattern Command)
 ///
 template<typename T, typename R, typename ...Args>
-class CRepeatTask: public CRunnable<T, R, Args...>
+class cRepeatTask: public cRunnable<T, R, Args...>
 {
 public://methods
-    CRepeatTask(T* processor,
-                typename CRunnable<T,R,Args...>::RunnableFunction runFunction,
-                int repeatTime,
-                QString description = "Repeat task",
-                std::tuple<Args...> params = std::make_tuple())
-        : CRunnable<T,R,Args...>(processor, runFunction, REPEAT_TASK, params, nullptr, description, repeatTime)
+    cRepeatTask(T* _processor,
+                typename cRunnable<T,R,Args...>::RunnableFunction _runFunction,
+                int _repeatTime,
+                QString _description = "Repeat task",
+                std::tuple<Args...> _params = std::make_tuple())
+        : cRunnable<T,R,Args...>(_processor, _runFunction, REPEAT_TASK, _params, nullptr, _description, _repeatTime)
     {}
 };
 
@@ -131,15 +131,15 @@ public://methods
 ///derived template class-wrapper (pattern Command)
 ///see macros_CreateLongTask in AdvMacros.h
 template<typename T, typename R, typename ...Args>
-class CLongTask: public CRunnable<T, R, Args...>
+class cLongTask: public cRunnable<T, R, Args...>
 {
 public://methods
-    CLongTask(T* processor,
-                typename CRunnable<T, R, Args...>::RunnableFunction runFunction,
-                typename CRunnable<T, R, Args...>::StopRunnableSign stopFunction,
-                QString description = "Long task",
+    cLongTask(T* processor,
+                typename cRunnable<T, R, Args...>::RunnableFunction _runFunction,
+                typename cRunnable<T, R, Args...>::StopRunnableSign _stopFunction,
+                QString _description = "Long task",
                 std::tuple<Args...> params = std::make_tuple())
-        : CRunnable<T,R, Args...>(processor, runFunction, LONG_TASK, params, stopFunction, description, -1)
+        : cRunnable<T,R, Args...>(processor, _runFunction, LONG_TASK, params, _stopFunction, _description, -1)
     {}
 };
 

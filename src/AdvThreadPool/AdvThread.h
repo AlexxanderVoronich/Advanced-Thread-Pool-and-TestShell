@@ -20,31 +20,31 @@
 #include <windows.h>
 #endif
 
-class CAdvThread
+class cAdvThread
 {
 public://enums
     enum class eThreadType{THREAD_NO_TYPE = 0, THREAD_SHARED, THREAD_NOT_SHARED, THREAD_NOT_SHARED_EXTRA};
     enum class eRUN_MODES {RUN = 1, STOP, STOP_WITHOUT_EXTRA_THREAD_DELETING, WHO, RUN_TYPE, GET_COUNTER, DECREASE_COUNTER, START_TIMER_FOR_INTERVAL, IS_TIMER_OVER};
 
 private://fields
-    std::condition_variable conditionVariable;
-    std::queue<runnable_closure> taskArray;
-    runnable_closure currentRunnableClosure;
+    std::condition_variable m_conditionVariable;
+    std::queue<runnable_closure> m_taskArray;
+    runnable_closure m_currentRunnableClosure;
 
-    std::mutex threadMutex;
-    std::thread nativeThread;
-    bool isThreadWork = false;
-    int threadNumber = 0;
-    eThreadType threadType = eThreadType::THREAD_NO_TYPE;
-    int coreQuantity = 0;
-    int averageTaskQuantity = 0;
+    std::mutex m_threadMutex;
+    std::thread m_nativeThread;
+    bool m_isThreadWork = false;
+    int m_threadNumber = 0;
+    eThreadType m_threadType = eThreadType::THREAD_NO_TYPE;
+    int m_coreQuantity = 0;
+    int m_averageTaskQuantity = 0;
     //std::chrono::system_clock::time_point lastTimeOfTaskQuantityAnalize;
     //std::chrono::system_clock::time_point lastTimeOfTaskLaunch;
 
-    std::chrono::high_resolution_clock::time_point lastTimeOfTaskQuantityAnalize;
-    std::chrono::high_resolution_clock::time_point lastTimeOfTaskLaunch;
+    std::chrono::high_resolution_clock::time_point m_lastTimeOfTaskQuantityAnalize;
+    std::chrono::high_resolution_clock::time_point m_lastTimeOfTaskLaunch;
 
-    SAffinityData affinityData;
+    SAffinityData m_affinityData;
 
 #ifdef Q_OS_LINUX
     pthread_t threadHandle = 0;
@@ -55,27 +55,27 @@ private://fields
 #endif
 
 public://methods
-    CAdvThread(int a_iThreadNumber, int  a_iCoreQuantity);
-    ~CAdvThread();
+    cAdvThread(int _threadNumber, int _coreQuantity);
+    ~cAdvThread();
 
-    bool appendRunnableTask(runnable_closure run, int run_type);
+    bool appendRunnableTask(runnable_closure _run, int _runType);
     size_t getTaskCount();
     size_t getAllTaskCount();
     //std::chrono::system_clock::time_point getLastTimeOfTaskLaunch()const;
     std::chrono::time_point<std::chrono::high_resolution_clock> getLastTimeOfTaskLaunch() const;
 
-    bool isReadyForSend_WarningAboutShortTaskFreeze = false;
+    bool m_isReadyForSend_WarningAboutShortTaskFreeze = false;
 
     bool isEmpty();
     void wait();
     void stop();
     void stopWithoutDeleteExtraThread();
-    bool isStoped(){ return !isThreadWork;}
-    int getThreadNumber(){return threadNumber;}
+    bool isStoped(){ return !m_isThreadWork;}
+    int getThreadNumber(){return m_threadNumber;}
     QString getWho();
     int getRunType();
-    void setThreadType(eThreadType type){ threadType = type;}
-    eThreadType getThreadType(){ return threadType;}
+    void setThreadType(eThreadType type){ m_threadType = type;}
+    eThreadType getThreadType(){ return m_threadType;}
     void setCoreMask(int mask);
 
 private://methods
@@ -84,6 +84,6 @@ private://methods
     void setAffinity();
 };
 
-typedef std::shared_ptr<CAdvThread> adv_thread_ptr;
+typedef std::shared_ptr<cAdvThread> adv_thread_ptr;
 
 #endif // ADVTHREAD_H

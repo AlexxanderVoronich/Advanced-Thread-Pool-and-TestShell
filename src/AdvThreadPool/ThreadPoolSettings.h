@@ -11,7 +11,7 @@
 #include <vector>
 #include "ServiceStructures.h"
 
-class CThreadPoolSettings: public QObject
+class cThreadPoolSettings: public QObject
 {
     Q_OBJECT
     Q_PROPERTY(int quantitySharedThreads_property READ getQuantitySharedThreads WRITE setQuantitySharedThreads)
@@ -20,17 +20,17 @@ class CThreadPoolSettings: public QObject
     Q_PROPERTY(std::vector<int> masks_property READ getMasks WRITE setMasks)
 
 public://fields
-    QString filePath;
-    bool isPoolStarted = false;//Sign of pool's starting
+    QString m_filePath;
+    bool m_isPoolStarted = false;//Sign of pool's starting
     int ID_TASK_COUNTER = 0;//ID of repeated short task
-    int coreQuantity = 0;
-    std::vector<int> masks;
-    bool isRead = false;
-    CPoolModes poolModes;
+    int m_coreQuantity = 0;
+    std::vector<int> m_masks;
+    bool m_isRead = false;
+    cPoolModes m_poolModes;
 
 private://fields
-    int quantitySharedThreads = 0;
-    int quantityUnsharedThreads = 0;    
+    int m_quantitySharedThreads = 0;
+    int m_quantityUnsharedThreads = 0;
 
 public://methods
     bool isValid();
@@ -38,20 +38,20 @@ public://methods
     void saveArchive();
     bool readArchive();
 
-    int getQuantitySharedThreads(){return quantitySharedThreads;}
-    void setQuantitySharedThreads(int value){quantitySharedThreads = value;}
+    int getQuantitySharedThreads(){return m_quantitySharedThreads;}
+    void setQuantitySharedThreads(int value){m_quantitySharedThreads = value;}
 
-    int getQuantityUnsharedThreads(){return quantityUnsharedThreads;}
-    void setQuantityUnsharedThreads(int value){quantityUnsharedThreads = value;}
+    int getQuantityUnsharedThreads(){return m_quantityUnsharedThreads;}
+    void setQuantityUnsharedThreads(int value){m_quantityUnsharedThreads = value;}
 
-    eAffinityMode getAffinityMode(){return poolModes.affinityMode;}
+    eAffinityMode getAffinityMode(){return m_poolModes.m_affinityMode;}
     void setAffinityMode(eAffinityMode value)
     {
-        poolModes.affinityMode = value;
+        m_poolModes.m_affinityMode = value;
     }
 
-    std::vector<int>& getMasks(){return masks;}
-    void setMasks(std::vector<int> value){masks = value;}
+    std::vector<int>& getMasks(){return m_masks;}
+    void setMasks(std::vector<int> _value){m_masks = _value;}
 };
 
 #endif // THREADPOOLSETTINGS

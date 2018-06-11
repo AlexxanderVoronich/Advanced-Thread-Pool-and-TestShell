@@ -10,93 +10,91 @@
 #include <QElapsedTimer>
 #include <functional>
 
-enum class eLogWarning{warning = 0, message};
-enum class eAffinityMode{No_Affinity = 1, Yes_Affinity, No_Affinity_Without_GUI_Edition, Yes_Affinity_Without_GUI_Edition};
+enum class eLogWarning{WARNING = 0, MESSAGE};
+enum class eAffinityMode{NO_AFFINITY = 1, YES_AFFINITY, No_Affinity_Without_GUI_Edition, Yes_Affinity_Without_GUI_Edition};
 enum class eThreadPoolMode{ORDINARY_MODE, REPEATED_TASK_MODE};
 enum class eStretchMode{NO_STRETCH, YES_STRETCH};
 
 Q_DECLARE_METATYPE(eLogWarning)
 Q_DECLARE_METATYPE(eAffinityMode)
 
-class CPoolModes
+class cPoolModes
 {
 public://data
     //ORDINARY_MODE or USE_REPEATED_TASK_MODE(create of system runnable task)
-    eThreadPoolMode threadPoolMode = eThreadPoolMode::ORDINARY_MODE;//field is not serialized
-    eAffinityMode affinityMode = eAffinityMode::No_Affinity;//field is serialized
-    eStretchMode stretchMode = eStretchMode::NO_STRETCH;//field is not serialized
+    eThreadPoolMode m_threadPoolMode = eThreadPoolMode::ORDINARY_MODE;//field is not serialized
+    eAffinityMode m_affinityMode = eAffinityMode::NO_AFFINITY;//field is serialized
+    eStretchMode m_stretchMode = eStretchMode::NO_STRETCH;//field is not serialized
 
 public://methods
-    CPoolModes& operator = (const CPoolModes& toCopy)
+    cPoolModes& operator = (const cPoolModes& toCopy)
     {
-        threadPoolMode = toCopy.threadPoolMode;
-        affinityMode = toCopy.affinityMode;
-        stretchMode = toCopy.stretchMode;
+        m_threadPoolMode = toCopy.m_threadPoolMode;
+        m_affinityMode = toCopy.m_affinityMode;
+        m_stretchMode = toCopy.m_stretchMode;
         return *this;
     }
 };
 
-
-
-class holdOverTask_Exception
+class ExceptionHoldOverTask
 {
 private:
-    std::string msg;
-    int holdOverInterval = 0;
+    std::string m_message;
+    int m_holdOverInterval = 0;
 public:
-    holdOverTask_Exception(const std::string& msg):msg(msg), holdOverInterval(0){}
-    holdOverTask_Exception(const std::string& msg, int interval):msg(msg), holdOverInterval(interval){}
-    std::string what()const{return msg;}
-    int getInterval()const{return holdOverInterval;}
+    ExceptionHoldOverTask(const std::string& _msg):m_message(_msg), m_holdOverInterval(0){}
+    ExceptionHoldOverTask(const std::string& _msg, int _interval):m_message(_msg), m_holdOverInterval(_interval){}
+    std::string what()const{return m_message;}
+    int getInterval()const{return m_holdOverInterval;}
 };
 
 template<class _T, class _RUNNABLE>
-struct CAdvFuture
+struct cAdvFuture
 {
-    CAdvFuture():ready(false), taskDescription(""){}
-    ~CAdvFuture(){}
+    cAdvFuture():m_ready(false), m_taskDescription(""){}
+    ~cAdvFuture(){}
 
 public://data
     //ptr to runnable_task (will be deleted in the pool after execution's end)
-    _RUNNABLE* pTask = nullptr;
-    void* pHostObject = nullptr;//ptr to HostObject
-    bool ready = false;//sign of task execution
-    _T data;//some data
-    QString taskDescription;
-    int executionCounter = 3;
-    int taskType = 0;
-    int repeatTaskID = 0;
-    int timeIntervalForHoldOverShortTask = 0;
-    QElapsedTimer qt_timer;
-    bool resultIsTimerOver = false;
+    _RUNNABLE* m_task = nullptr;
+    void* m_hostObject = nullptr;//ptr to HostObject
+    bool m_ready = false;//sign of task execution
+    _T m_data;//some data
+    QString m_taskDescription;
+    int m_executionCounter = 3;
+    int m_taskType = 0;
+    int m_repeatTaskID = 0;
+    int m_timeIntervalForHoldOverShortTask = 0;
+    QElapsedTimer m_qt_timer;
+    bool m_resultIsTimerOver = false;
 };
 
 typedef std::function<QString(int, int)> runnable_closure;
 
-class CRepeatedTaskAdapter
+class cRepeatedTaskAdapter
 {
 public:
-    CRepeatedTaskAdapter(runnable_closure task):run(task){}
-    runnable_closure run;
-    int ID = 0;
-    int timePeriod = 0;
-    QElapsedTimer qt_timer;
+    cRepeatedTaskAdapter(runnable_closure _task):m_run(_task){}
+    runnable_closure m_run;
+    int m_id = 0;
+    int m_timePeriod = 0;
+    QElapsedTimer m_qt_timer;
 };
 
-class CPoolDockWidget: public QDockWidget
+class cPoolDockWidget: public QDockWidget
 {
     Q_OBJECT
 
 public:
-    CPoolDockWidget(QWidget *widget):QDockWidget(widget){}
-    virtual ~CPoolDockWidget(){}
+    cPoolDockWidget(QWidget *_widget):QDockWidget(_widget){}
+    virtual ~cPoolDockWidget(){}
 };
 
 struct SAffinityData
 {
 public:
-    int coreMask = 0;
-    int coreChanged = 0;
+    int m_coreMask = 0;
+    int m_coreChanged = 0;
 };
 
 

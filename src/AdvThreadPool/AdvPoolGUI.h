@@ -19,48 +19,48 @@ namespace Ui
     class ThreadPoolShell;
 }
 
-class CAdvPoolGUI:public QMainWindow
+class cAdvPoolGUI:public QMainWindow
 {
     Q_OBJECT
 
 private://fields
-    Ui::ThreadPoolShell *ui = nullptr;
-    eAffinityMode affinityMode = eAffinityMode::No_Affinity;
-    int coresQuantity = 0;
-    std::list<CheckCoreWidget*> affinityWidgetList;
+    Ui::ThreadPoolShell *m_ui = nullptr;
+    eAffinityMode m_affinityMode = eAffinityMode::NO_AFFINITY;
+    int m_coresQuantity = 0;
+    std::list<cCheckCoreWidget*> m_affinityWidgetList;
 
-    WarningJournal* warningJournal = nullptr;
+    cWarningJournal* m_warningJournal = nullptr;
 
 public://methods
-    CAdvPoolGUI(QWidget* parent = 0, Qt::WindowFlags flags = 0);
-    ~CAdvPoolGUI();
+    cAdvPoolGUI(QWidget* _parent = 0, Qt::WindowFlags _flags = 0);
+    ~cAdvPoolGUI();
     void createThreadPoolShell();
 
 private://methods
     void windowClean();
-    void setEnabledAffinity(bool sign);
+    void setEnabledAffinity(bool _sign);
 
 public slots:
-    void slot_PoolState(int state);
-    void slot_setQuantityUnsharedThreads(int unshared);
-    void slot_setQuantitySharedThreads(int shared);
-    void slot_NewThread(int id, int type);
-    void slot_UnsharedThread_AddLongTask(int id, int runType, QString description);
-    void slot_UnsharedThread_DeleteLongTask(int id);
-    void slot_UnsharedThread_DeleteExtraLongTask(int id);
-    void slot_LongTaskQuantity(int quantity);
-    void slot_StopClicked();
-    void slot_StartClicked();
-    void slot_Apply();
-    void slot_DialogHide();
-    void slot_SharedThread_MeanCountTasks(int id, QString count);
-    void slot_AddRepeatTask(int task_id, int time, QString who, int repeatTaskQuantity);
-    void slot_DeleteRepeatTask(int task_id);
-    void slot_EditRepeatTaskTime(int task_id, int time);
-    void slot_AffinityMode(int index);
-    void slot_setQuantityCores(int quantityCores);
+    void slot_poolState(int _state);
+    void slot_setQuantityUnsharedThreads(int _unshared);
+    void slot_setQuantitySharedThreads(int _shared);
+    void slot_newThread(int _id, int _type);
+    void slot_unsharedThread_addLongTask(int _id, int _runType, QString _description);
+    void slot_unsharedThread_deleteLongTask(int _id);
+    void slot_unsharedThread_deleteExtraLongTask(int _id);
+    void slot_longTaskQuantity(int _quantity);
+    void slot_stopClicked();
+    void slot_startClicked();
+    void slot_apply();
+    void slot_dialogHide();
+    void slot_sharedThread_meanCountTasks(int _id, QString _count);
+    void slot_addRepeatTask(int _taskId, int _time, QString _who, int _repeatTaskQuantity);
+    void slot_deleteRepeatTask(int _taskId);
+    void slot_editRepeatTaskTime(int _taskId, int _time);
+    void slot_affinityMode(int _index);
+    void slot_setQuantityCores(int _quantityCores);
     void slot_setAffinityMode(eAffinityMode _affinityMode);
-    void slot_setAffinityMask(int thread_num, int thread_type, int thread_mask);
+    void slot_setAffinityMask(int _threadNum, int _threadType, int _threadMask);
 };
 
 #endif // CTHREADPOOLSHELL_H

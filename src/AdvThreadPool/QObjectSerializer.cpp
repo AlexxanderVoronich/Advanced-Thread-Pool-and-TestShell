@@ -6,7 +6,7 @@ QObjectSerializer::QObjectSerializer()
 
 }
 
-bool QObjectSerializer::serialize(QString filePath, QObject *pObject)
+bool QObjectSerializer::serialize(QString _filePath, QObject *_object)
 {
     try
     {
@@ -14,17 +14,17 @@ bool QObjectSerializer::serialize(QString filePath, QObject *pObject)
         int eAffinityMode_ID = qRegisterMetaType<eAffinityMode>();
 
         QDomDocument doc;
-        QDomElement root = doc.createElement(pObject->metaObject()->className());
+        QDomElement root = doc.createElement(_object->metaObject()->className());
         doc.appendChild(root);
 
-        for(int i = 0; i < pObject->metaObject()->propertyCount(); i++)
+        for(int i = 0; i < _object->metaObject()->propertyCount(); i++)
         {
-            QMetaProperty prop = pObject->metaObject()->property(i);
+            QMetaProperty prop = _object->metaObject()->property(i);
             QString propertyName = prop.name();
             if(propertyName == "objectName")
                 continue;
             QDomElement el = doc.createElement(propertyName);
-            QVariant value = pObject->property(qPrintable(propertyName));
+            QVariant value = _object->property(qPrintable(propertyName));
 
             if(value.userType() == VECTOR_INT_ID)
             {
@@ -55,7 +55,7 @@ bool QObjectSerializer::serialize(QString filePath, QObject *pObject)
             }
         }
 
-        QFile outputFile(filePath);
+        QFile outputFile(_filePath);
         if(outputFile.open(QFile::WriteOnly | QFile::Truncate))
         {
             QTextStream outputStream(&outputFile);
@@ -73,26 +73,26 @@ bool QObjectSerializer::serialize(QString filePath, QObject *pObject)
     return true;
 }
 
-bool QObjectSerializer::deserialize(QString filePath, QObject *pObject)
+bool QObjectSerializer::deserialize(QString _filePath, QObject *_object)
 {
     try
     {
         int VECTOR_INT_ID = qRegisterMetaType<std::vector<int>>("std::vector<int>");
         int eAffinityMode_ID = qRegisterMetaType<eAffinityMode>();
 
-        QFile inputFile(filePath);
+        QFile inputFile(_filePath);
         QDomDocument doc;
         if (!doc.setContent(&inputFile))
             return false;
         QDomElement root = doc.documentElement();
-        for(int i = 0; i < pObject->metaObject()->propertyCount(); i++)
+        for(int i = 0; i < _object->metaObject()->propertyCount(); i++)
         {
-            QMetaProperty prop = pObject->metaObject()->property(i);
+            QMetaProperty prop = _object->metaObject()->property(i);
             QString propName = prop.name();
             if(propName == "objectName")
                 continue;
 
-            QVariant value = pObject->property(qPrintable(propName));
+            QVariant value = _object->property(qPrintable(propName));
 
             QDomNodeList nodeList = root.elementsByTagName(propName);
             if(nodeList.length() < 1)
@@ -118,19 +118,19 @@ bool QObjectSerializer::deserialize(QString filePath, QObject *pObject)
 
                 QVariant variant;
                 variant.setValue(array);
-                pObject->setProperty(qPrintable(propName), variant);
+                _object->setProperty(qPrintable(propName), variant);
             }
             else if(value.userType() == eAffinityMode_ID)
             {
                 int v = node.toElement().text().toInt();
                 QVariant variant;
                 variant.setValue(v);
-                pObject->setProperty(qPrintable(propName), variant);
+                _object->setProperty(qPrintable(propName), variant);
             }
             else
             {
                 QString v = node.toElement().text();
-                pObject->setProperty(qPrintable(propName), QVariant(v));
+                _object->setProperty(qPrintable(propName), QVariant(v));
             }
         }
     }

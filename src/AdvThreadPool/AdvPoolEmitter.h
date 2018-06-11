@@ -10,13 +10,13 @@
 #include "ServiceStructures.h"
 #include <QObject>
 
-class CAdvPoolEmitter: public QObject
+class cAdvPoolEmitter: public QObject
 {
     Q_OBJECT
 
 public://methods
-    CAdvPoolEmitter(){}
-    ~CAdvPoolEmitter(){}
+    cAdvPoolEmitter(){}
+    ~cAdvPoolEmitter(){}
 
     void sendSignal_PoolStart()
     {
@@ -26,29 +26,29 @@ public://methods
     {
         emit signal_PoolState(0);
     }
-    void sendSignal_NewThread(int id, CAdvThread::eThreadType type)
+    void sendSignal_NewThread(int _id, cAdvThread::eThreadType _type)
     {
-        emit signal_NewThread(id, (int)type);
+        emit signal_NewThread(_id, static_cast<int>(_type));
     }
-    void sendSignal_Who_forUnsharedThread(int id, int run_type, QString who)
+    void sendSignal_Who_forUnsharedThread(int _id, int _run_type, QString _who)
     {
-        emit signal_UnsharedThread_AddLongTask(id, run_type, who);
+        emit signal_UnsharedThread_AddLongTask(_id, _run_type, _who);
     }
-    void sendSignal_longTaskQuantity(int quantity)
+    void sendSignal_longTaskQuantity(int _quantity)
     {
-        emit signal_LongTaskQuantity(quantity);
+        emit signal_LongTaskQuantity(_quantity);
     }
-    void sendSignal_MeanCountTasks(int id, QString count)
+    void sendSignal_MeanCountTasks(int _id, QString _count)
     {
-        emit signal_SharedThread_MeanCountTasks(id, count);
+        emit signal_SharedThread_MeanCountTasks(_id, _count);
     }
-    void sendSignal_DeleteLongTask(int id)
+    void sendSignal_DeleteLongTask(int _id)
     {
-        emit signal_UnsharedThread_DeleteLongTask(id);
+        emit signal_UnsharedThread_DeleteLongTask(_id);
     }
-    void sendSignal_DeleteExtraLongTask(int id)
+    void sendSignal_DeleteExtraLongTask(int _id)
     {
-        emit signal_UnsharedThread_DeleteExtraLongTask(id);
+        emit signal_UnsharedThread_DeleteExtraLongTask(_id);
     }
 
     void sendSignal_poolNotWork()
@@ -58,44 +58,44 @@ public://methods
     void sendSignal_NoThread()
     {
         //emit signal_DeleteTopTaskFromThread(id);
-        addWarningToShell(QString("Thread not find"), eLogWarning::warning);
+        addWarningToShell(QString("Thread not find"), eLogWarning::WARNING);
     }
 
-    void sendSignal_AddRepeatTask(int task_id, int time, QString who, int repeatTaskQuantity)
+    void sendSignal_AddRepeatTask(int _task_id, int _time, QString _who, int _repeatTaskQuantity)
     {
-        emit signal_AddRepeatTask(task_id, time, who, repeatTaskQuantity);
+        emit signal_AddRepeatTask(_task_id, _time, _who, _repeatTaskQuantity);
     }
-    void sendSignal_DeleteRepeatTask(int task_id)
+    void sendSignal_DeleteRepeatTask(int _task_id)
     {
-        emit signal_DeleteRepeatTask(task_id);
+        emit signal_DeleteRepeatTask(_task_id);
     }
-    void sendSignal_EditRepeatTaskTime(int task_id, int time)
+    void sendSignal_EditRepeatTaskTime(int _task_id, int _time)
     {
-        emit signal_EditRepeatTaskTime(task_id, time);
-    }
-
-    void sendSignals_AffinityMode(eAffinityMode affinityMode)
-    {
-        emit signal_AffinityMode(affinityMode);
+        emit signal_EditRepeatTaskTime(_task_id, _time);
     }
 
-    void sendSignals_Info(int unshared, int shared, int coreQuantity, eAffinityMode affinityMode)
+    void sendSignals_AffinityMode(eAffinityMode _affinityMode)
     {
-        emit signal_QuantityUnsharedThreads(unshared);
-        emit signal_QuantitySharedThreads(shared);
-        emit signal_QuantityCores(coreQuantity);
-        emit signal_AffinityMode(affinityMode);
+        emit signal_AffinityMode(_affinityMode);
     }
 
-    void sendSignal_AffinityMask(int thread_num, int thread_type, int thread_mask)
+    void sendSignals_Info(int _unshared, int _shared, int _coreQuantity, eAffinityMode _affinityMode)
     {
-        emit signal_AffinityMask(thread_num, thread_type, thread_mask);
+        emit signal_QuantityUnsharedThreads(_unshared);
+        emit signal_QuantitySharedThreads(_shared);
+        emit signal_QuantityCores(_coreQuantity);
+        emit signal_AffinityMode(_affinityMode);
+    }
+
+    void sendSignal_AffinityMask(int _threadNum, int _threadType, int _threadMask)
+    {
+        emit signal_AffinityMask(_threadNum, _threadType, _threadMask);
     }
 
     //add new warning in Warning_Table
-    void addWarningToShell(QString message, eLogWarning value)
+    void addWarningToShell(QString _message, eLogWarning _value)
     {
-        emit signal_AddWarning(message, value);
+        emit signal_AddWarning(_message, _value);
     }
 
 signals:

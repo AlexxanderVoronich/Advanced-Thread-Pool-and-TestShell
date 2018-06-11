@@ -19,19 +19,19 @@
 /// taskPeriod - time for task restarting (only for repeat tasks)
 
 #define macros_CreateLongTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskStopFunction, taskDescription) \
-            new CLongTask<taskClassName, taskReturnType>(taskClassPtr, \
+            new cLongTask<taskClassName, taskReturnType>(taskClassPtr, \
                 &taskClassName::taskRunFunction, \
                 &taskClassName::taskStopFunction, \
                 taskDescription);
 
 #define macros_CreateRepeatTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskPeriod, taskDescription) \
-            new CRepeatTask<taskClassName, taskReturnType>(taskClassPtr, \
+            new cRepeatTask<taskClassName, taskReturnType>(taskClassPtr, \
                 &taskClassName::taskRunFunction, \
                 taskPeriod, \
                 taskDescription);
 
 #define macros_CreateShortTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType) \
-            new CShortTask<taskClassName, taskReturnType>(taskClassPtr, &taskClassName::taskRunFunction);
+            new cShortTask<taskClassName, taskReturnType>(taskClassPtr, &taskClassName::taskRunFunction);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////Macroses for creation and launch of each type tasks///////////////////////////////////////////////////////////
@@ -48,14 +48,14 @@
 
 #define macros_CreateAndLaunchLongTask(task, taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskStopFunction, taskDescription) \
             macros_CreateLongTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskStopFunction, taskDescription); \
-            auto future_of_##task = CAdvThreadPool::launchRunnableObject<taskReturnType, CLongTask<taskClassName, taskReturnType> >(task);
+            auto future_of_##task = cAdvThreadPool::launchRunnableObject<taskReturnType, cLongTask<taskClassName, taskReturnType> >(task);
 
 #define macros_CreateAndLaunchRepeatTask(task, taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskPeriod, taskDescription) \
             macros_CreateRepeatTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType, taskPeriod, taskDescription); \
-            auto future_of_##task = CAdvThreadPool::launchRunnableObject<taskReturnType, CRepeatTask<taskClassName, taskReturnType>>(task);
+            auto future_of_##task = cAdvThreadPool::launchRunnableObject<taskReturnType, cRepeatTask<taskClassName, taskReturnType>>(task);
 
 #define macros_CreateAndLaunchShortTask(task, taskClassPtr, taskClassName, taskRunFunction, taskReturnType) \
             macros_CreateShortTask(taskClassPtr, taskClassName, taskRunFunction, taskReturnType); \
-            auto future_of_##task = CAdvThreadPool::launchRunnableObject<taskReturnType, CShortTask<taskClassName, taskReturnType>>(task);
+            auto future_of_##task = cAdvThreadPool::launchRunnableObject<taskReturnType, cShortTask<taskClassName, taskReturnType>>(task);
 
 #endif // ADVMACROS_H

@@ -33,12 +33,12 @@ void CThreadPoolSettings::serialize(Archive & ar, const unsigned int version)
 }
 */
 
-bool CThreadPoolSettings::isValid()
+bool cThreadPoolSettings::isValid()
 {
-    return !(quantitySharedThreads == 0 && quantityUnsharedThreads == 0);
+    return !(m_quantitySharedThreads == 0 && m_quantityUnsharedThreads == 0);
 }
 
-void CThreadPoolSettings::saveArchive()
+void cThreadPoolSettings::saveArchive()
 {
     /*try //serialization based on libBoostSerialization
     { // serialize
@@ -54,10 +54,10 @@ void CThreadPoolSettings::saveArchive()
     }*/
 
     //serialization based on qt meta-object information and QDom
-    QObjectSerializer::serialize(filePath, this);
+    QObjectSerializer::serialize(m_filePath, this);
 }
 
-bool CThreadPoolSettings::readArchive()
+bool cThreadPoolSettings::readArchive()
 {
     /*try //deserialization based on libBoostSerialization
     { // deserialize
@@ -85,5 +85,5 @@ bool CThreadPoolSettings::readArchive()
     }*/
 
     //deserialization based on qt meta-object information and QDom
-    return QObjectSerializer::deserialize(filePath, this);
+    return QObjectSerializer::deserialize(m_filePath, this);
 }

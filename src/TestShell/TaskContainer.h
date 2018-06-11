@@ -6,10 +6,10 @@
 
 class LongTaskContainer
 {
-    bool runnableSign = false;
-    QString description;
+    bool m_runnableSign = false;
+    QString m_description;
 public:
-    LongTaskContainer(QString text);
+    LongTaskContainer(QString _text);
     ~LongTaskContainer();
 
     qint32 longTaskFunction();
@@ -18,7 +18,7 @@ public:
 
 class ShortTaskGenerator
 {
-    bool runnableSign = false;
+    bool m_runnableSign = false;
 public:
     ShortTaskGenerator();
     ~ShortTaskGenerator();
@@ -34,9 +34,9 @@ class Tasks
 {
 public://data
     //list with futures of long tasks
-    std::list<std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>>> longTaskFutures;
+    std::list<std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>>> m_longTaskFutures;
     //list with futures of repeat tasks
-    std::list<std::shared_ptr<CAdvFuture<qint32, CRepeatTask<Tasks, qint32>>>> repeatTaskFutures;
+    std::list<std::shared_ptr<cAdvFuture<qint32, cRepeatTask<Tasks, qint32>>>> m_repeatTaskFutures;
 
 public://methods
     Tasks();

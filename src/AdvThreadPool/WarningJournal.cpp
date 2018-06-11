@@ -2,83 +2,83 @@
 #include <QHeaderView>
 #include <QTime>
 
-WarningJournal::WarningJournal(QWidget* parent, QString text)
+cWarningJournal::cWarningJournal(QWidget* parent, QString text)
 {
     setupDockWidgets(parent, text);
 }
 
 //warning table
-void WarningJournal::setupDockWidgets(QWidget* parent, QString text)
+void cWarningJournal::setupDockWidgets(QWidget* parent, QString text)
 {
-    warningDockWidget = new CPoolDockWidget(parent);
-    warningDockWidget->setObjectName(QString::fromUtf8("m_Warning_dockWidget"));
-    warningDockWidget->setWindowTitle(text);
+    m_warningDockWidget = new cPoolDockWidget(parent);
+    m_warningDockWidget->setObjectName(QString::fromUtf8("m_Warning_dockWidget"));
+    m_warningDockWidget->setWindowTitle(text);
     //m_Warning_dockWidget->windowTitle("Window Imitator Event");
 
-    warningTableView = new QTableView();
-    warningTableView->setObjectName(QString::fromUtf8("m_Warning_TV"));
+    m_warningTableView = new QTableView();
+    m_warningTableView->setObjectName(QString::fromUtf8("m_Warning_TV"));
 
-    warningDockWidget->setWidget(warningTableView);
+    m_warningDockWidget->setWidget(m_warningTableView);
 
     QStringList headWarn;
     headWarn<<"ico"<<"Time"<<"Message";
 
-    warningModel = new QStandardItemModel(0, headWarn.size() );
-    warningModel->setHorizontalHeaderLabels(headWarn);
+    m_warningModel = new QStandardItemModel(0, headWarn.size() );
+    m_warningModel->setHorizontalHeaderLabels(headWarn);
 
-    warningTableView->setModel(warningModel);
-    warningTableView->setSortingEnabled(false);
-    warningTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    warningTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    warningTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-    warningTableView->setAlternatingRowColors(true);
+    m_warningTableView->setModel(m_warningModel);
+    m_warningTableView->setSortingEnabled(false);
+    m_warningTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_warningTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_warningTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_warningTableView->setAlternatingRowColors(true);
     //m_Warning_TV->verticalHeader()->hide();
     //m_Warning_TV->horizontalHeader()->setDefaultSectionSize(100);
     //warningTableView->horizontalHeader()->setMovable(false);
-    warningTableView->horizontalHeader()->setSectionsMovable(false);
-    warningTableView->verticalHeader()->setDefaultSectionSize(16);
+    m_warningTableView->horizontalHeader()->setSectionsMovable(false);
+    m_warningTableView->verticalHeader()->setDefaultSectionSize(16);
 
     //warning table
-    warningTableView->setColumnWidth(0,25);
-    warningTableView->setColumnWidth(1,90);
-    warningTableView->horizontalHeader()->setStretchLastSection(true);
+    m_warningTableView->setColumnWidth(0,25);
+    m_warningTableView->setColumnWidth(1,90);
+    m_warningTableView->horizontalHeader()->setStretchLastSection(true);
 }
 
-void WarningJournal::slot_AddWarning(QString text, eLogWarning value)
+void cWarningJournal::slot_addWarning(QString text, eLogWarning value)
 {
     QTime l_oTime = QTime::currentTime();
     QString str_time = l_oTime.toString("hh:mm:ss.zzz");
     QVariant var;
 
-    warningModel->insertRows(0, 1, QModelIndex());
+    m_warningModel->insertRows(0, 1, QModelIndex());
 
-    QModelIndex index = warningModel->index(0, 0, QModelIndex()); //first column
+    QModelIndex index = m_warningModel->index(0, 0, QModelIndex()); //first column
     QIcon ico = getIconForWarning(value);
-    warningModel->setData(index, ico , Qt::DecorationRole);
+    m_warningModel->setData(index, ico , Qt::DecorationRole);
 
-    index = warningModel->index(0, 1, QModelIndex()); //second column
+    index = m_warningModel->index(0, 1, QModelIndex()); //second column
     var.setValue(str_time);
-    warningModel->setData(index, var, Qt::EditRole);
+    m_warningModel->setData(index, var, Qt::EditRole);
 
-    index = warningModel->index(0, 2, QModelIndex());////third column
+    index = m_warningModel->index(0, 2, QModelIndex());////third column
     var.setValue(text);
-    warningModel->setData(index, var, Qt::EditRole);
+    m_warningModel->setData(index, var, Qt::EditRole);
 
-    int iRowCount = warningModel->rowCount();
+    int iRowCount = m_warningModel->rowCount();
     if (iRowCount > 200 )
     {
-        warningModel->removeRows(warningModel->index( iRowCount-1 , 0, QModelIndex() ).row(), 1, QModelIndex() );
+        m_warningModel->removeRows(m_warningModel->index( iRowCount-1 , 0, QModelIndex() ).row(), 1, QModelIndex() );
     }
 }
 
-QIcon WarningJournal::getIconForWarning(eLogWarning value)
+QIcon cWarningJournal::getIconForWarning(eLogWarning value)
 {
     QIcon ico;
-    if(value == eLogWarning::warning)
+    if(value == eLogWarning::WARNING)
     {
         ico = QIcon(":/images/warning.xpm");
     }
-    else if(value == eLogWarning::message)
+    else if(value == eLogWarning::MESSAGE)
     {
         ico = QIcon(":/images/message.xpm");
     }

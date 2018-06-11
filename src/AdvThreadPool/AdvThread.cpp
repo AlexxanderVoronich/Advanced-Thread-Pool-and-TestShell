@@ -8,74 +8,74 @@
 #include <QtGlobal>
 #include <QtDebug>
 
-CAdvThread::CAdvThread(int a_iThreadNumber, int a_iCoreQuantity)
-    :isThreadWork(true),taskArray()
-    ,nativeThread(&CAdvThread::threadMainFunction, this)
-    ,currentRunnableClosure(nullptr)
+cAdvThread::cAdvThread(int _threadNumber, int _coreQuantity)
+    :m_isThreadWork(true),m_taskArray()
+    ,m_nativeThread(&cAdvThread::threadMainFunction, this)
+    ,m_currentRunnableClosure(nullptr)
 {
-    threadNumber = a_iThreadNumber;
-    coreQuantity = a_iCoreQuantity;
-    qDebug() << "CAdvThread constructor for thread_id = " << threadNumber;
+    m_threadNumber = _threadNumber;
+    m_coreQuantity = _coreQuantity;
+    qDebug() << "CAdvThread constructor for thread_id = " << m_threadNumber;
 }
 
-CAdvThread::~CAdvThread()
+cAdvThread::~cAdvThread()
 {
-    qDebug() << "~CAdvThread" << threadNumber << "destructor begin";
-    isThreadWork = false;
-    conditionVariable.notify_one();
-    if(nativeThread.joinable())
+    qDebug() << "~CAdvThread" << m_threadNumber << "destructor begin";
+    m_isThreadWork = false;
+    m_conditionVariable.notify_one();
+    if(m_nativeThread.joinable())
     {
         qDebug() << "~CAdvThread - joinable";
-        nativeThread.join();
+        m_nativeThread.join();
     }
 
-    qDebug() << "~CAdvThread" << threadNumber << "destructor end";
+    qDebug() << "~CAdvThread" << m_threadNumber << "destructor end";
 }
 
-bool CAdvThread::appendRunnableTask(runnable_closure run, int run_type)
+bool cAdvThread::appendRunnableTask(runnable_closure _run, int _runType)
 {
-    if((run_type == eRunnableType::LONG_TASK || run_type == eRunnableType::LONG_TASK_EXTRA) && currentRunnableClosure)
+    if((_runType == eRunnableType::LONG_TASK || _runType == eRunnableType::LONG_TASK_EXTRA) && m_currentRunnableClosure)
         return false;
 
-    if(run_type == eRunnableType::LONG_TASK_EXTRA)
+    if(_runType == eRunnableType::LONG_TASK_EXTRA)
         qDebug() << "LONG_TASK_EXTRA append to thread's queue";
 
-    std::unique_lock<std::mutex> locker(threadMutex);
-    taskArray.push(run);
-    conditionVariable.notify_one();
+    std::unique_lock<std::mutex> locker(m_threadMutex);
+    m_taskArray.push(_run);
+    m_conditionVariable.notify_one();
 
     std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 
-    auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastTimeOfTaskQuantityAnalize).count();
+    auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - m_lastTimeOfTaskQuantityAnalize).count();
     if(delta >= 1000)
     {
-        lastTimeOfTaskQuantityAnalize = currentTime;
+        m_lastTimeOfTaskQuantityAnalize = currentTime;
 
-        if(run_type == eRunnableType::SHORT_TASK || run_type == eRunnableType::REPEAT_TASK)
+        if(_runType == eRunnableType::SHORT_TASK || _runType == eRunnableType::REPEAT_TASK)
         {
-            CAdvThreadPool::getInstance().getEmitter()->sendSignal_MeanCountTasks(getThreadNumber(),
-                                QString("%1/%2").arg(averageTaskQuantity).arg(taskArray.size()));
+            cAdvThreadPool::getInstance().getEmitter()->sendSignal_MeanCountTasks(getThreadNumber(),
+                                QString("%1/%2").arg(m_averageTaskQuantity).arg(m_taskArray.size()));
         }
 
-        averageTaskQuantity = 0;
+        m_averageTaskQuantity = 0;
     }
 
-    averageTaskQuantity++;
+    m_averageTaskQuantity++;
 
     return true;
 }
 
-size_t CAdvThread::getTaskCount()
+size_t cAdvThread::getTaskCount()
 {
-    std::unique_lock<std::mutex> locker(threadMutex);
-    return taskArray.size();
+    std::unique_lock<std::mutex> locker(m_threadMutex);
+    return m_taskArray.size();
 }
 
 
-size_t CAdvThread::getAllTaskCount()
+size_t cAdvThread::getAllTaskCount()
 {
-    std::unique_lock<std::mutex> locker(threadMutex);
-    return (currentRunnableClosure)? taskArray.size()+1: taskArray.size();
+    std::unique_lock<std::mutex> locker(m_threadMutex);
+    return (m_currentRunnableClosure)? m_taskArray.size()+1: m_taskArray.size();
 }
 
 /*std::chrono::system_clock::time_point CAdvThread::getLastTimeOfTaskLaunch() const
@@ -83,18 +83,18 @@ size_t CAdvThread::getAllTaskCount()
     return lastTimeOfTaskLaunch;
 }*/
 
-std::chrono::time_point<std::chrono::high_resolution_clock> CAdvThread::getLastTimeOfTaskLaunch() const
+std::chrono::time_point<std::chrono::high_resolution_clock> cAdvThread::getLastTimeOfTaskLaunch() const
 {
-    return lastTimeOfTaskLaunch;
+    return m_lastTimeOfTaskLaunch;
 }
 
-bool CAdvThread::isEmpty()
+bool cAdvThread::isEmpty()
 {
-    std::unique_lock<std::mutex> locker(threadMutex);
-    return taskArray.empty()&&!currentRunnableClosure;
+    std::unique_lock<std::mutex> locker(m_threadMutex);
+    return m_taskArray.empty()&&!m_currentRunnableClosure;
 }
 
-void CAdvThread::getCurrentHandle()
+void cAdvThread::getCurrentHandle()
 {
 #ifdef Q_OS_LINUX
     //cpu_set_t cpuset;
@@ -108,7 +108,7 @@ void CAdvThread::getCurrentHandle()
 
 }
 
-void CAdvThread::setAffinity()
+void cAdvThread::setAffinity()
 {
 #ifdef Q_OS_LINUX
     if(threadHandle != 0)
@@ -122,7 +122,7 @@ void CAdvThread::setAffinity()
 #else
     if(threadHandle != 0)
     {
-        DWORD_PTR res = SetThreadAffinityMask(threadHandle, affinityData.coreMask);
+        DWORD_PTR res = SetThreadAffinityMask(threadHandle, m_affinityData.m_coreMask);
         if (0 == res)
         {
          // failure
@@ -130,84 +130,84 @@ void CAdvThread::setAffinity()
     }
 #endif
 
-     affinityData.coreChanged = 0;
+     m_affinityData.m_coreChanged = 0;
 }
 
-void CAdvThread:: wait()
+void cAdvThread:: wait()
 {
-    if(nativeThread.joinable())
-        nativeThread.join();
-     currentRunnableClosure = nullptr;
+    if(m_nativeThread.joinable())
+        m_nativeThread.join();
+     m_currentRunnableClosure = nullptr;
 }
 
-void CAdvThread::stop()
+void cAdvThread::stop()
 {
-    if(currentRunnableClosure)
-        currentRunnableClosure(int(eRUN_MODES::STOP), 0);//StopRunnable
+    if(m_currentRunnableClosure)
+        m_currentRunnableClosure(int(eRUN_MODES::STOP), 0);//StopRunnable
 
-    isThreadWork = false;
-    conditionVariable.notify_one();
+    m_isThreadWork = false;
+    m_conditionVariable.notify_one();
 }
 
-void CAdvThread::stopWithoutDeleteExtraThread()
+void cAdvThread::stopWithoutDeleteExtraThread()
 {
-    if(currentRunnableClosure)
-        currentRunnableClosure(int(eRUN_MODES::STOP_WITHOUT_EXTRA_THREAD_DELETING), 0);//StopRunnable
+    if(m_currentRunnableClosure)
+        m_currentRunnableClosure(int(eRUN_MODES::STOP_WITHOUT_EXTRA_THREAD_DELETING), 0);//StopRunnable
 
-    isThreadWork = false;
-    conditionVariable.notify_one();
+    m_isThreadWork = false;
+    m_conditionVariable.notify_one();
 }
 
 
-QString CAdvThread::getWho()
+QString cAdvThread::getWho()
 {
     QString who;
-    if(currentRunnableClosure)
-        who = currentRunnableClosure(int(eRUN_MODES::WHO), 0);
+    if(m_currentRunnableClosure)
+        who = m_currentRunnableClosure(int(eRUN_MODES::WHO), 0);
     else
         who = QString("empty");
 
     return who;
 }
 
-int CAdvThread::getRunType()
+int cAdvThread::getRunType()
 {
     int runType;
-    if(currentRunnableClosure)
-        runType = currentRunnableClosure(int(eRUN_MODES::RUN_TYPE), 0).toInt();
+    if(m_currentRunnableClosure)
+        runType = m_currentRunnableClosure(int(eRUN_MODES::RUN_TYPE), 0).toInt();
     else
         runType = 0;
 
     return runType;
 }
 
-void CAdvThread::setCoreMask(int mask)
+void cAdvThread::setCoreMask(int mask)
 {
-    affinityData.coreMask = mask;
-    affinityData.coreChanged = 1;
+    m_affinityData.m_coreMask = mask;
+    m_affinityData.m_coreChanged = 1;
     setAffinity();
 }
 
 
-void CAdvThread::threadMainFunction()
+void cAdvThread::threadMainFunction()
 {
     getCurrentHandle();
     setAffinity();
-    while (isThreadWork)
+    while (m_isThreadWork)
     {
-        std::unique_lock<std::mutex> locker(threadMutex);
+        std::unique_lock<std::mutex> locker(m_threadMutex);
         // wait notification and check that it does not a false awakening
         // Thread must awake if list is not empty or it was poweroff
-        conditionVariable.wait(locker, [&](){ return !taskArray.empty() || !isThreadWork || affinityData.coreChanged;});
+        m_conditionVariable.wait(locker, [&](){ return !m_taskArray.empty() || !m_isThreadWork || m_affinityData.m_coreChanged;});
 
-        while(!taskArray.empty())
+        while(!m_taskArray.empty())
         {
-            if(!isThreadWork)//if stop thread of pool
+            if(!m_isThreadWork)//if stop thread of pool
             {
-                while(!taskArray.empty())//stop all tasks
+                while(!m_taskArray.empty())//stop all tasks
                 {
-                    runnable_closure runClosure = taskArray.front();//get task from array
-                    taskArray.pop();
+                    runnable_closure runClosure = m_taskArray.front();//get task from array
+                    m_taskArray.pop();
                     locker.unlock();//unlock before task call
                     runClosure(int(eRUN_MODES::STOP), 0);
                     locker.lock();
@@ -215,53 +215,53 @@ void CAdvThread::threadMainFunction()
                 return;
             }
 
-            currentRunnableClosure = taskArray.front();//get task from array
-            taskArray.pop();
+            m_currentRunnableClosure = m_taskArray.front();//get task from array
+            m_taskArray.pop();
 
             locker.unlock();//unlock before task call
             try
             {
-                if(threadType == eThreadType::THREAD_SHARED && getRunType() == eRunnableType::SHORT_TASK)
+                if(m_threadType == eThreadType::THREAD_SHARED && getRunType() == eRunnableType::SHORT_TASK)
                 {
-                    QString stringTimerResult = currentRunnableClosure(int(eRUN_MODES::IS_TIMER_OVER), 0);
+                    QString stringTimerResult = m_currentRunnableClosure(int(eRUN_MODES::IS_TIMER_OVER), 0);
                     if(stringTimerResult == QString("1"))
                     {
-                        lastTimeOfTaskLaunch = std::chrono::high_resolution_clock::now();
-                        isReadyForSend_WarningAboutShortTaskFreeze = true;
-                        currentRunnableClosure(int(eRUN_MODES::RUN), 0);
-                        isReadyForSend_WarningAboutShortTaskFreeze = false;
+                        m_lastTimeOfTaskLaunch = std::chrono::high_resolution_clock::now();
+                        m_isReadyForSend_WarningAboutShortTaskFreeze = true;
+                        m_currentRunnableClosure(int(eRUN_MODES::RUN), 0);
+                        m_isReadyForSend_WarningAboutShortTaskFreeze = false;
                     }
                     else //task hold over
-                        appendRunnableTask(currentRunnableClosure, eRunnableType::SHORT_TASK);
+                        appendRunnableTask(m_currentRunnableClosure, eRunnableType::SHORT_TASK);
                 }
                 else
                 {
-                    lastTimeOfTaskLaunch = std::chrono::high_resolution_clock::now();
-                    isReadyForSend_WarningAboutShortTaskFreeze = true;
-                    currentRunnableClosure(int(eRUN_MODES::RUN), 0);
-                    isReadyForSend_WarningAboutShortTaskFreeze = false;
+                    m_lastTimeOfTaskLaunch = std::chrono::high_resolution_clock::now();
+                    m_isReadyForSend_WarningAboutShortTaskFreeze = true;
+                    m_currentRunnableClosure(int(eRUN_MODES::RUN), 0);
+                    m_isReadyForSend_WarningAboutShortTaskFreeze = false;
                 }
 
             }
-            catch(holdOverTask_Exception action)
+            catch(ExceptionHoldOverTask action)
             {
-                if(threadType == eThreadType::THREAD_SHARED && getRunType() == eRunnableType::SHORT_TASK)
+                if(m_threadType == eThreadType::THREAD_SHARED && getRunType() == eRunnableType::SHORT_TASK)
                 {
-                    int counterOfExecution = currentRunnableClosure(int(eRUN_MODES::GET_COUNTER), 0).toInt();
+                    int counterOfExecution = m_currentRunnableClosure(int(eRUN_MODES::GET_COUNTER), 0).toInt();
                     if(counterOfExecution>0)
                     {
-                        CAdvThreadPool::getInstance().getEmitter()->addWarningToShell(QString("Task was hold over - counter = %1 (%2)").arg(counterOfExecution)
+                        cAdvThreadPool::getInstance().getEmitter()->addWarningToShell(QString("Task was hold over - counter = %1 (%2)").arg(counterOfExecution)
                                                                                       .arg(QString::fromStdString(action.what())),
-                                                                                      eLogWarning::message);
-                        currentRunnableClosure(int(eRUN_MODES::DECREASE_COUNTER), 0);
-                        currentRunnableClosure(int(eRUN_MODES::START_TIMER_FOR_INTERVAL), action.getInterval());
-                        appendRunnableTask(currentRunnableClosure, eRunnableType::SHORT_TASK);
+                                                                                      eLogWarning::MESSAGE);
+                        m_currentRunnableClosure(int(eRUN_MODES::DECREASE_COUNTER), 0);
+                        m_currentRunnableClosure(int(eRUN_MODES::START_TIMER_FOR_INTERVAL), action.getInterval());
+                        appendRunnableTask(m_currentRunnableClosure, eRunnableType::SHORT_TASK);
                     }
                     else
                     {
-                        CAdvThreadPool::getInstance().getEmitter()->addWarningToShell(QString("Task will not processing - counter over (%2)").arg(counterOfExecution)
+                        cAdvThreadPool::getInstance().getEmitter()->addWarningToShell(QString("Task will not processing - counter over (%2)").arg(counterOfExecution)
                                                                                       .arg(QString::fromStdString(action.what())),
-                                                                                      eLogWarning::warning);
+                                                                                      eLogWarning::WARNING);
                     }
                 }
 
@@ -271,23 +271,23 @@ void CAdvThread::threadMainFunction()
                 QString temp = QString("%1 - CAdvThread::threadMainFunction - ").arg(e.what());
                 temp += getWho();
                 std::cout<<temp.toStdString()<<std::endl;
-                CAdvThreadPool::getInstance().getEmitter()->addWarningToShell(temp, eLogWarning::warning);
+                cAdvThreadPool::getInstance().getEmitter()->addWarningToShell(temp, eLogWarning::WARNING);
             }
             catch(...)
             {               
                 QString temp = QString("Undefined exception - CAdvThread::threadMainFunction - ");
                 temp += getWho();
                 std::cout<<temp.toStdString()<<std::endl;
-                CAdvThreadPool::getInstance().getEmitter()->addWarningToShell(temp, eLogWarning::warning);
+                cAdvThreadPool::getInstance().getEmitter()->addWarningToShell(temp, eLogWarning::WARNING);
             }
 
             locker.lock(); // lock before m_TaskArray.empty()
-            currentRunnableClosure = nullptr;
+            m_currentRunnableClosure = nullptr;
 
-            if(threadType == eThreadType::THREAD_NOT_SHARED)
-                CAdvThreadPool::getInstance().getEmitter()->sendSignal_DeleteLongTask(getThreadNumber());
-            else if(threadType == eThreadType::THREAD_NOT_SHARED_EXTRA)
-                CAdvThreadPool::getInstance().getEmitter()->sendSignal_DeleteExtraLongTask(getThreadNumber());
+            if(m_threadType == eThreadType::THREAD_NOT_SHARED)
+                cAdvThreadPool::getInstance().getEmitter()->sendSignal_DeleteLongTask(getThreadNumber());
+            else if(m_threadType == eThreadType::THREAD_NOT_SHARED_EXTRA)
+                cAdvThreadPool::getInstance().getEmitter()->sendSignal_DeleteExtraLongTask(getThreadNumber());
         }
     }
 }

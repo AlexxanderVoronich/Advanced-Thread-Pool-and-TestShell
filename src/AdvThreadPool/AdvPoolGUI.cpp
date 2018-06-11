@@ -9,49 +9,49 @@
 #include <QCheckBox>
 #include <QTime>
 
-CAdvPoolGUI::CAdvPoolGUI(QWidget* parent, Qt::WindowFlags flags):QMainWindow(parent, flags), ui(new Ui::ThreadPoolShell)
+cAdvPoolGUI::cAdvPoolGUI(QWidget* parent, Qt::WindowFlags flags):QMainWindow(parent, flags), m_ui(new Ui::ThreadPoolShell)
 {
-    ui->setupUi(this);
+    m_ui->setupUi(this);
 
-    warningJournal = new WarningJournal(this, QString("Messages box"));
-    addDockWidget(Qt::BottomDockWidgetArea, warningJournal->warningDockWidget);
+    m_warningJournal = new cWarningJournal(this, QString("Messages box"));
+    addDockWidget(Qt::BottomDockWidgetArea, m_warningJournal->m_warningDockWidget);
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
-    viewMenu->addAction(warningJournal->warningDockWidget->toggleViewAction());
-    warningJournal->warningDockWidget->hide();
+    viewMenu->addAction(m_warningJournal->m_warningDockWidget->toggleViewAction());
+    m_warningJournal->m_warningDockWidget->hide();
 
     //this->setWindowFlags(Qt::FramelessWindowHint|Qt::WindowStaysOnTopHint);
-    ui->treeWidget_notshared_threads->header()->resizeSection(0,70);
-    ui->treeWidget_notshared_threads->header()->resizeSection(1,70);
-    ui->treeWidget_notshared_threads->header()->resizeSection(2,400);
-    ui->treeWidget_notshared_threads->header()->stretchLastSection();
+    m_ui->treeWidget_notshared_threads->header()->resizeSection(0,70);
+    m_ui->treeWidget_notshared_threads->header()->resizeSection(1,70);
+    m_ui->treeWidget_notshared_threads->header()->resizeSection(2,400);
+    m_ui->treeWidget_notshared_threads->header()->stretchLastSection();
 
-    ui->treeWidget_shared_threads->header()->resizeSection(0,70);
-    ui->treeWidget_shared_threads->header()->resizeSection(1,300);
-    ui->treeWidget_shared_threads->header()->stretchLastSection();
+    m_ui->treeWidget_shared_threads->header()->resizeSection(0,70);
+    m_ui->treeWidget_shared_threads->header()->resizeSection(1,300);
+    m_ui->treeWidget_shared_threads->header()->stretchLastSection();
 
 }
 
-CAdvPoolGUI::~CAdvPoolGUI()
+cAdvPoolGUI::~cAdvPoolGUI()
 {
-    delete ui;
+    delete m_ui;
 }
 
-void CAdvPoolGUI::createThreadPoolShell()
+void cAdvPoolGUI::createThreadPoolShell()
 {
-    CAdvPoolEmitter* emitter = CAdvThreadPool::getInstance().getEmitter();
+    cAdvPoolEmitter* emitter = cAdvThreadPool::getInstance().getEmitter();
 
-    connect(emitter, SIGNAL(signal_PoolState(int)), this, SLOT(slot_PoolState(int)));
-    connect(emitter, SIGNAL(signal_NewThread(int, int)), this, SLOT(slot_NewThread(int, int)));
-    connect(emitter, SIGNAL(signal_UnsharedThread_AddLongTask(int,int, QString)), this, SLOT(slot_UnsharedThread_AddLongTask(int,int, QString)));
-    connect(emitter, SIGNAL(signal_SharedThread_MeanCountTasks(int, QString)), this, SLOT(slot_SharedThread_MeanCountTasks(int, QString)));
-    connect(emitter, SIGNAL(signal_UnsharedThread_DeleteLongTask(int)), this, SLOT(slot_UnsharedThread_DeleteLongTask(int)));
-    connect(emitter, SIGNAL(signal_UnsharedThread_DeleteExtraLongTask(int)), this, SLOT(slot_UnsharedThread_DeleteExtraLongTask(int)));
+    connect(emitter, SIGNAL(signal_PoolState(int)), this, SLOT(slot_poolState(int)));
+    connect(emitter, SIGNAL(signal_NewThread(int, int)), this, SLOT(slot_newThread(int, int)));
+    connect(emitter, SIGNAL(signal_UnsharedThread_AddLongTask(int,int, QString)), this, SLOT(slot_unsharedThread_addLongTask(int,int, QString)));
+    connect(emitter, SIGNAL(signal_SharedThread_MeanCountTasks(int, QString)), this, SLOT(slot_sharedThread_meanCountTasks(int, QString)));
+    connect(emitter, SIGNAL(signal_UnsharedThread_DeleteLongTask(int)), this, SLOT(slot_unsharedThread_deleteLongTask(int)));
+    connect(emitter, SIGNAL(signal_UnsharedThread_DeleteExtraLongTask(int)), this, SLOT(slot_unsharedThread_deleteExtraLongTask(int)));
 
-    connect(emitter, SIGNAL(signal_LongTaskQuantity(int)), this, SLOT(slot_LongTaskQuantity(int)));
+    connect(emitter, SIGNAL(signal_LongTaskQuantity(int)), this, SLOT(slot_longTaskQuantity(int)));
 
-    connect(emitter, SIGNAL(signal_AddRepeatTask(int, int, QString, int)), this, SLOT(slot_AddRepeatTask(int, int, QString, int)));
-    connect(emitter, SIGNAL(signal_DeleteRepeatTask(int)), this, SLOT(slot_DeleteRepeatTask(int)));
-    connect(emitter, SIGNAL(signal_EditRepeatTaskTime(int, int)), this, SLOT(slot_EditRepeatTaskTime(int, int)));
+    connect(emitter, SIGNAL(signal_AddRepeatTask(int, int, QString, int)), this, SLOT(slot_addRepeatTask(int, int, QString, int)));
+    connect(emitter, SIGNAL(signal_DeleteRepeatTask(int)), this, SLOT(slot_deleteRepeatTask(int)));
+    connect(emitter, SIGNAL(signal_EditRepeatTaskTime(int, int)), this, SLOT(slot_editRepeatTaskTime(int, int)));
 
     connect(emitter, SIGNAL(signal_QuantityUnsharedThreads(int)), this, SLOT(slot_setQuantityUnsharedThreads(int)));
     connect(emitter, SIGNAL(signal_QuantitySharedThreads(int)), this, SLOT(slot_setQuantitySharedThreads(int)));
@@ -59,50 +59,50 @@ void CAdvPoolGUI::createThreadPoolShell()
     connect(emitter, SIGNAL(signal_AffinityMode(eAffinityMode)), this, SLOT(slot_setAffinityMode(eAffinityMode)));
     connect(emitter, SIGNAL(signal_AffinityMask(int, int, int)), this, SLOT(slot_setAffinityMask(int, int, int)));
 
-    connect(ui->pushButton_StopPool,SIGNAL(clicked()), this, SLOT(slot_StopClicked()));
-    connect(ui->pushButton_StartPool,SIGNAL(clicked()), this, SLOT(slot_StartClicked()));
-    connect(ui->pushButton_Apply,SIGNAL(clicked()), this, SLOT(slot_Apply()));
-    connect(ui->pushButton_Close,SIGNAL(clicked()), this, SLOT(slot_DialogHide()));   
+    connect(m_ui->pushButton_StopPool,SIGNAL(clicked()), this, SLOT(slot_stopClicked()));
+    connect(m_ui->pushButton_StartPool,SIGNAL(clicked()), this, SLOT(slot_startClicked()));
+    connect(m_ui->pushButton_Apply,SIGNAL(clicked()), this, SLOT(slot_apply()));
+    connect(m_ui->pushButton_Close,SIGNAL(clicked()), this, SLOT(slot_dialogHide()));   
 
-    connect(ui->comboBox_Affinity,SIGNAL(currentIndexChanged(int)), this, SLOT(slot_AffinityMode(int)));
-    connect(emitter, SIGNAL(signal_AddWarning(QString, eLogWarning)), warningJournal, SLOT(slot_AddWarning(QString, eLogWarning)));
+    connect(m_ui->comboBox_Affinity,SIGNAL(currentIndexChanged(int)), this, SLOT(slot_affinityMode(int)));
+    connect(emitter, SIGNAL(signal_AddWarning(QString, eLogWarning)), m_warningJournal, SLOT(slot_addWarning(QString, eLogWarning)));
 
-    CAdvThreadPool::getInstance().requestState();
+    cAdvThreadPool::getInstance().requestState();
 }
 
-void CAdvPoolGUI::slot_PoolState(int state)
+void cAdvPoolGUI::slot_poolState(int state)
 {
     //QPalette palette;
     if(state == 0)
     {
-        ui->label_state->setText("Power OFF");
-        ui->label_state->setStyleSheet("QLabel { background-color : red; color : blue; }");
+        m_ui->label_state->setText("Power OFF");
+        m_ui->label_state->setStyleSheet("QLabel { background-color : red; color : blue; }");
         //palette.setColor(QPalette::ColorRole::Base, Qt::red);
         //ui->label_state->setPalette(palette);
     }
     else
     {
-        ui->label_state->setText("Power ON");
-        ui->label_state->setStyleSheet("QLabel { background-color : green; color : yellow; }");
+        m_ui->label_state->setText("Power ON");
+        m_ui->label_state->setStyleSheet("QLabel { background-color : green; color : yellow; }");
         //palette.setColor(QPalette::ColorRole::Base, Qt::green);
         //ui->label_state->setPalette(palette);
     }
 }
 
-void CAdvPoolGUI::slot_setQuantityUnsharedThreads(int unshared)
+void cAdvPoolGUI::slot_setQuantityUnsharedThreads(int unshared)
 {
-    ui->lineEdit_unshared_threads->setText(QString("%1").arg(unshared));
-    ui->label_UnsharedQ->setText(QString("%1").arg(unshared));
+    m_ui->lineEdit_unshared_threads->setText(QString("%1").arg(unshared));
+    m_ui->label_UnsharedQ->setText(QString("%1").arg(unshared));
 }
 
-void CAdvPoolGUI::slot_setQuantitySharedThreads(int shared)
+void cAdvPoolGUI::slot_setQuantitySharedThreads(int shared)
 {
-    ui->lineEdit_shared_threads->setText(QString("%1").arg(shared));
-    ui->label_SharedQ->setText(QString("%1").arg(shared));
+    m_ui->lineEdit_shared_threads->setText(QString("%1").arg(shared));
+    m_ui->label_SharedQ->setText(QString("%1").arg(shared));
 }
 
 
-void CAdvPoolGUI::slot_NewThread(int id, int type)
+void cAdvPoolGUI::slot_newThread(int id, int type)
 {
     QColor colorText = QColor(Qt::black);
     QColor colorShared = QColor(Qt::red);
@@ -110,9 +110,9 @@ void CAdvPoolGUI::slot_NewThread(int id, int type)
     QColor colorCommon = QColor(Qt::yellow);
     QColor colorAffinity = QColor(Qt::gray);
     QTreeWidgetItem* pItem = nullptr;
-    if(type == int(CAdvThread::eThreadType::THREAD_NOT_SHARED))
+    if(type == int(cAdvThread::eThreadType::THREAD_NOT_SHARED))
     {
-        pItem = new QTreeWidgetItem(ui->treeWidget_notshared_threads);
+        pItem = new QTreeWidgetItem(m_ui->treeWidget_notshared_threads);
         pItem->setBackground(0, QBrush(colorNotShared));
         pItem->setForeground(0, QBrush(colorText));
         pItem->setBackground(1, QBrush(colorCommon));
@@ -124,9 +124,9 @@ void CAdvPoolGUI::slot_NewThread(int id, int type)
 
         pItem->setText(0, QString("%1").arg(id));
     }
-    else if(type == int(CAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA))
+    else if(type == int(cAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA))
     {
-        pItem = new QTreeWidgetItem(ui->treeWidget_notshared_threads);
+        pItem = new QTreeWidgetItem(m_ui->treeWidget_notshared_threads);
         pItem->setBackground(0, QBrush(colorShared));
         pItem->setForeground(0, QBrush(colorText));
         pItem->setBackground(1, QBrush(colorCommon));
@@ -138,9 +138,9 @@ void CAdvPoolGUI::slot_NewThread(int id, int type)
 
         pItem->setText(0, QString("%1").arg(id));
     }
-    else if(type == int(CAdvThread::eThreadType::THREAD_SHARED))
+    else if(type == int(cAdvThread::eThreadType::THREAD_SHARED))
     {
-        pItem = new QTreeWidgetItem(ui->treeWidget_shared_threads);
+        pItem = new QTreeWidgetItem(m_ui->treeWidget_shared_threads);
         pItem->setBackground(0, QBrush(colorShared));
         pItem->setForeground(0, QBrush(colorText));
         pItem->setBackground(1, QBrush(colorCommon));
@@ -154,38 +154,38 @@ void CAdvPoolGUI::slot_NewThread(int id, int type)
         return;
 
 
-    CheckCoreWidget *pWidget = new CheckCoreWidget(this, coresQuantity, id);
-    affinityWidgetList.push_back(pWidget);
+    cCheckCoreWidget *pWidget = new cCheckCoreWidget(this, m_coresQuantity, id);
+    m_affinityWidgetList.push_back(pWidget);
 
-    if(affinityMode == eAffinityMode::Yes_Affinity)
+    if(m_affinityMode == eAffinityMode::YES_AFFINITY)
     {
        pWidget->setEnabled(true);
     }
-    else if(affinityMode == eAffinityMode::No_Affinity ||
-            affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition ||
-            affinityMode == eAffinityMode::No_Affinity_Without_GUI_Edition)
+    else if(m_affinityMode == eAffinityMode::NO_AFFINITY ||
+            m_affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition ||
+            m_affinityMode == eAffinityMode::No_Affinity_Without_GUI_Edition)
     {
        pWidget->setEnabled(false);
     }
 
-    if(type == int(CAdvThread::eThreadType::THREAD_NOT_SHARED) ||
-            type == int(CAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA))
+    if(type == int(cAdvThread::eThreadType::THREAD_NOT_SHARED) ||
+            type == int(cAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA))
     {
-        ui->treeWidget_notshared_threads->setItemWidget(pItem, 3, pWidget);
-        ui->treeWidget_notshared_threads->addTopLevelItem(pItem);
+        m_ui->treeWidget_notshared_threads->setItemWidget(pItem, 3, pWidget);
+        m_ui->treeWidget_notshared_threads->addTopLevelItem(pItem);
     }
-    else if(type == int(CAdvThread::eThreadType::THREAD_SHARED))
+    else if(type == int(cAdvThread::eThreadType::THREAD_SHARED))
     {
-        ui->treeWidget_shared_threads->setItemWidget(pItem, 2, pWidget);
-        ui->treeWidget_shared_threads->addTopLevelItem(pItem);
+        m_ui->treeWidget_shared_threads->setItemWidget(pItem, 2, pWidget);
+        m_ui->treeWidget_shared_threads->addTopLevelItem(pItem);
     }
 }
 
-void CAdvPoolGUI::slot_UnsharedThread_AddLongTask(int id, int runType, QString description)
+void cAdvPoolGUI::slot_unsharedThread_addLongTask(int id, int runType, QString description)
 {
     if(runType == int(eRunnableType::LONG_TASK))
     {
-        auto list = ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+        auto list = m_ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
         for(auto it: list)
         {
             it->setText(1, QString("Long task"));
@@ -194,7 +194,7 @@ void CAdvPoolGUI::slot_UnsharedThread_AddLongTask(int id, int runType, QString d
     }
     else if(runType == int(eRunnableType::EMPTY_TASK))
     {
-        auto list = ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+        auto list = m_ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
         for(auto it: list)
         {
             it->setText(1, QString("Empty task"));
@@ -203,7 +203,7 @@ void CAdvPoolGUI::slot_UnsharedThread_AddLongTask(int id, int runType, QString d
     }
     else if(runType == int(eRunnableType::LONG_TASK_EXTRA))
     {
-        auto list = ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+        auto list = m_ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
         for(auto it: list)
         {
             it->setText(1, QString("Extra task"));
@@ -212,9 +212,9 @@ void CAdvPoolGUI::slot_UnsharedThread_AddLongTask(int id, int runType, QString d
     }
 }
 
-void CAdvPoolGUI::slot_UnsharedThread_DeleteLongTask(int id)
+void cAdvPoolGUI::slot_unsharedThread_deleteLongTask(int id)
 {
-    auto list = ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+    auto list = m_ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
     for(auto it: list)
     {
         it->setText(1, "Empty task");
@@ -222,47 +222,47 @@ void CAdvPoolGUI::slot_UnsharedThread_DeleteLongTask(int id)
     }
 }
 
-void CAdvPoolGUI::slot_UnsharedThread_DeleteExtraLongTask(int id)
+void cAdvPoolGUI::slot_unsharedThread_deleteExtraLongTask(int id)
 {     
-    auto list = ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+    auto list = m_ui->treeWidget_notshared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
     for(auto it: list)
     {
-        ui->treeWidget_notshared_threads->takeTopLevelItem(ui->treeWidget_notshared_threads->indexOfTopLevelItem(it));
+        m_ui->treeWidget_notshared_threads->takeTopLevelItem(m_ui->treeWidget_notshared_threads->indexOfTopLevelItem(it));
     }
 }
 
-void CAdvPoolGUI::slot_LongTaskQuantity(int quantity)
+void cAdvPoolGUI::slot_longTaskQuantity(int quantity)
 {
-    ui->label_longTaskQ->setText(QString::number(quantity));
-    qint32 unsharedQ = ui->label_UnsharedQ->text().toInt();
+    m_ui->label_longTaskQ->setText(QString::number(quantity));
+    qint32 unsharedQ = m_ui->label_UnsharedQ->text().toInt();
     if(quantity > unsharedQ)
     {
-        ui->label_longTaskQ->setStyleSheet("QLabel { background-color : yellow; color : red; }");
+        m_ui->label_longTaskQ->setStyleSheet("QLabel { background-color : yellow; color : red; }");
     }
     else
     {
-        ui->label_longTaskQ->setStyleSheet("");
+        m_ui->label_longTaskQ->setStyleSheet("");
     }
 }
 
-void CAdvPoolGUI::slot_StopClicked()
+void cAdvPoolGUI::slot_stopClicked()
 {
-    CAdvThreadPool::stopThreadPool();
+    cAdvThreadPool::stopThreadPool();
     windowClean();
-    CAdvThreadPool::getInstance().requestState();
+    cAdvThreadPool::getInstance().requestState();
 }
 
-void CAdvPoolGUI::slot_StartClicked()
+void cAdvPoolGUI::slot_startClicked()
 {
-    CAdvThreadPool::startThreadPool(-1, -1);
+    cAdvThreadPool::startThreadPool(-1, -1);
     windowClean();
-    CAdvThreadPool::getInstance().requestState();
+    cAdvThreadPool::getInstance().requestState();
 }
 
-void CAdvPoolGUI::slot_Apply()
+void cAdvPoolGUI::slot_apply()
 {
-    int unshared = ui->lineEdit_unshared_threads->text().toInt();
-    int shared = ui->lineEdit_shared_threads->text().toInt();   
+    int unshared = m_ui->lineEdit_unshared_threads->text().toInt();
+    int shared = m_ui->lineEdit_shared_threads->text().toInt();   
 /*
     std::vector<int> affMaskContainer;
     for(auto it: m_AffWidgetList)
@@ -270,39 +270,39 @@ void CAdvPoolGUI::slot_Apply()
         affMaskContainer.push_back(it->getMask());
     }
 */
-    CAdvThreadPool::stopThreadPool();
+    cAdvThreadPool::stopThreadPool();
     windowClean();
-    CAdvThreadPool::getInstance().saveSettings(unshared, shared, affinityMode);
-    CAdvThreadPool::startThreadPool(-1, -1);
-    CAdvThreadPool::getInstance().requestState();
+    cAdvThreadPool::getInstance().saveSettings(unshared, shared, m_affinityMode);
+    cAdvThreadPool::startThreadPool(-1, -1);
+    cAdvThreadPool::getInstance().requestState();
 }
 
 
-void CAdvPoolGUI::windowClean()
+void cAdvPoolGUI::windowClean()
 {
-    ui->treeWidget_notshared_threads->clear();
-    ui->treeWidget_shared_threads->clear();
-    affinityWidgetList.clear();
+    m_ui->treeWidget_notshared_threads->clear();
+    m_ui->treeWidget_shared_threads->clear();
+    m_affinityWidgetList.clear();
 }
 
-void CAdvPoolGUI::slot_DialogHide()
+void cAdvPoolGUI::slot_dialogHide()
 {
     hide();
 }
 
-void CAdvPoolGUI::slot_SharedThread_MeanCountTasks(int id, QString count)
+void cAdvPoolGUI::slot_sharedThread_meanCountTasks(int id, QString count)
 {
-    auto list = ui->treeWidget_shared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
+    auto list = m_ui->treeWidget_shared_threads->findItems(QString("%1").arg(id), Qt::MatchExactly, 0);
     for(auto it: list)
     {
         it->setText(1, count);
     }
 }
 
-void CAdvPoolGUI::slot_AddRepeatTask(int task_id, int time, QString who, int repeatTaskQuantity)
+void cAdvPoolGUI::slot_addRepeatTask(int task_id, int time, QString who, int repeatTaskQuantity)
 {
     QTreeWidgetItem* pItem;
-    pItem = new QTreeWidgetItem(ui->treeWidget_repeat_tasks);
+    pItem = new QTreeWidgetItem(m_ui->treeWidget_repeat_tasks);
 
     QColor color_text = QColor(Qt::black);
     QColor color_id = QColor(135, 206, 250);
@@ -318,97 +318,97 @@ void CAdvPoolGUI::slot_AddRepeatTask(int task_id, int time, QString who, int rep
     pItem->setText(1, QString("%1").arg(time));
     pItem->setText(2, who);
 
-    ui->treeWidget_repeat_tasks->addTopLevelItem(pItem);
-    ui->label_repeatTaskQ->setText(QString::number(repeatTaskQuantity));
+    m_ui->treeWidget_repeat_tasks->addTopLevelItem(pItem);
+    m_ui->label_repeatTaskQ->setText(QString::number(repeatTaskQuantity));
 }
 
-void CAdvPoolGUI::slot_DeleteRepeatTask(int task_id)
+void cAdvPoolGUI::slot_deleteRepeatTask(int task_id)
 {
-    auto list = ui->treeWidget_repeat_tasks->findItems(QString("%1").arg(task_id), Qt::MatchExactly, 0);
+    auto list = m_ui->treeWidget_repeat_tasks->findItems(QString("%1").arg(task_id), Qt::MatchExactly, 0);
     for(auto it: list)
     {
-        ui->treeWidget_repeat_tasks->takeTopLevelItem( ui->treeWidget_repeat_tasks->indexOfTopLevelItem(it));
+        m_ui->treeWidget_repeat_tasks->takeTopLevelItem( m_ui->treeWidget_repeat_tasks->indexOfTopLevelItem(it));
     }
 }
 
-void CAdvPoolGUI::slot_EditRepeatTaskTime(int task_id, int time)
+void cAdvPoolGUI::slot_editRepeatTaskTime(int task_id, int time)
 {
-    auto list = ui->treeWidget_repeat_tasks->findItems(QString("%1").arg(task_id), Qt::MatchExactly, 0);
+    auto list = m_ui->treeWidget_repeat_tasks->findItems(QString("%1").arg(task_id), Qt::MatchExactly, 0);
     for(auto it: list)
     {
          it->setText(1, QString("%1").arg(time));
     }
 }
 
-void CAdvPoolGUI::slot_AffinityMode(int index)
+void cAdvPoolGUI::slot_affinityMode(int _index)
 {
-    if(index == 0)
+    if(_index == 0)
     {
-        affinityMode = eAffinityMode::No_Affinity;
+        m_affinityMode = eAffinityMode::NO_AFFINITY;
         setEnabledAffinity(false);
     }
-    else if(index == 1)
+    else if(_index == 1)
     {
-        affinityMode = eAffinityMode::Yes_Affinity;
+        m_affinityMode = eAffinityMode::YES_AFFINITY;
         setEnabledAffinity(true);
     }
 }
 
-void CAdvPoolGUI::setEnabledAffinity(bool sign)
+void cAdvPoolGUI::setEnabledAffinity(bool _sign)
 {
     int threadNumber = 0;
-    for(auto it: affinityWidgetList)
+    for(auto it: m_affinityWidgetList)
     {
         if(threadNumber != 0)
-            it->setEnabled(sign);
+            it->setEnabled(_sign);
         else
             it->setEnabled(false);//affinityWidget for (zero thread) system thread don't change
         threadNumber++;
     }
 }
 
-void CAdvPoolGUI::slot_setQuantityCores(int quantityCores)
+void cAdvPoolGUI::slot_setQuantityCores(int quantityCores)
 {
-    coresQuantity = quantityCores;
-    ui->label_CoreQuantity->setText(QString("%1").arg(quantityCores));
+    m_coresQuantity = quantityCores;
+    m_ui->label_CoreQuantity->setText(QString("%1").arg(quantityCores));
 }
 
-void CAdvPoolGUI::slot_setAffinityMode(eAffinityMode _affinityMode)
+void cAdvPoolGUI::slot_setAffinityMode(eAffinityMode _affinityMode)
 {
-    affinityMode = eAffinityMode(_affinityMode);
-    if(affinityMode == eAffinityMode::No_Affinity)
+    m_affinityMode = eAffinityMode(_affinityMode);
+    if(m_affinityMode == eAffinityMode::NO_AFFINITY)
     {
         setEnabledAffinity(false);
-        ui->comboBox_Affinity->setCurrentIndex(0);
+        m_ui->comboBox_Affinity->setCurrentIndex(0);
     }
-    else if(affinityMode == eAffinityMode::Yes_Affinity)
+    else if(m_affinityMode == eAffinityMode::YES_AFFINITY)
     {
         setEnabledAffinity(true);
-        ui->comboBox_Affinity->setCurrentIndex(1);
+        m_ui->comboBox_Affinity->setCurrentIndex(1);
     }
-    else if(affinityMode == eAffinityMode::No_Affinity_Without_GUI_Edition)
+    else if(m_affinityMode == eAffinityMode::No_Affinity_Without_GUI_Edition)
     {
         setEnabledAffinity(false);
-        ui->comboBox_Affinity->hide();
+        m_ui->comboBox_Affinity->hide();
         QString title = windowTitle() + QString(" (mode: No_Affinity_Without_GUI_Edition");
         setWindowTitle(title);
     }
-    else if(affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition)
+    else if(m_affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition)
     {
         setEnabledAffinity(false);
-        ui->comboBox_Affinity->hide();
+        m_ui->comboBox_Affinity->hide();
         QString title = windowTitle() + QString(" (mode: Yes_Affinity_Without_GUI_Edition");
         setWindowTitle(title);
     }
 }
 
-void CAdvPoolGUI::slot_setAffinityMask(int thread_num, int thread_type, int thread_mask)
+void cAdvPoolGUI::slot_setAffinityMask(int thread_num, int thread_type, int thread_mask)
 {
     if(thread_num == 0)
         return; //no affinity for system thread
 
     int i = 0;
-    for(auto it = affinityWidgetList.begin(); it != affinityWidgetList.end(); it++)
+    for(auto it = m_affinityWidgetList.begin(); it != m_affinityWidgetList.end(); it++)
     {
         if(i == thread_num)
         {

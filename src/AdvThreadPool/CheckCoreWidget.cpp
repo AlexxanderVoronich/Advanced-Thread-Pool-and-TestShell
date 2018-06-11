@@ -7,20 +7,20 @@
 #include "CheckCoreWidget.h"
 
 
-CheckCoreWidget::CheckCoreWidget(QWidget *parent, int core_quantity, int id):QWidget(parent)
+cCheckCoreWidget::cCheckCoreWidget(QWidget *_parent, int _core_quantity, int _id):QWidget(_parent)
 {
-    coreQuantity = core_quantity;
-    thread_id = id;
+    m_coreQuantity = _core_quantity;
+    m_thread_id = _id;
     setupUi(this);
 
-    for(int i=0; i<coreQuantity; i++)
+    for(int i=0; i < m_coreQuantity; i++)
     {
-        connect(checkBoxContainer[i], SIGNAL(toggled(bool)), this, SLOT(slot_CheckBoxClicked(bool)));
+        connect(m_checkBoxContainer[i], SIGNAL(toggled(bool)), this, SLOT(slot_CheckBoxClicked(bool)));
     }
 }
 
 
-void CheckCoreWidget::mousePressEvent (QMouseEvent * event)
+void cCheckCoreWidget::mousePressEvent (QMouseEvent * event)
 {
 /*
     if(Qt::LeftButton == event->button())
@@ -37,9 +37,9 @@ void CheckCoreWidget::mousePressEvent (QMouseEvent * event)
     {
         QWidget::mousePressEvent(event);
 
-        bool state = checkBoxContainer[0]->checkState() == Qt::Unchecked ?true:false;
+        bool state = m_checkBoxContainer[0]->checkState() == Qt::Unchecked ?true:false;
 
-        for(auto it = checkBoxContainer.begin(); it != checkBoxContainer.end(); it++)
+        for(auto it = m_checkBoxContainer.begin(); it != m_checkBoxContainer.end(); it++)
         {
             if(state)
                 (*it)->setCheckState(Qt::CheckState::Checked);
@@ -51,11 +51,11 @@ void CheckCoreWidget::mousePressEvent (QMouseEvent * event)
 
 }
 
-int CheckCoreWidget::getMask() const
+int cCheckCoreWidget::getMask() const
 {
     int num_core = 0;
     int mask = 0;
-    for(auto it: checkBoxContainer)
+    for(auto it: m_checkBoxContainer)
     {
         int chek = it->checkState();
         if(chek == Qt::Unchecked)
@@ -75,13 +75,13 @@ int CheckCoreWidget::getMask() const
     return mask;
 }
 
-void CheckCoreWidget::setMask(int mask)
+void cCheckCoreWidget::setMask(int _mask)
 {
     int num_core = 0;
-    for(auto it: checkBoxContainer)
+    for(auto it: m_checkBoxContainer)
     {
         int shift = 1<<num_core;
-        int temp = mask & shift;
+        int temp = _mask & shift;
         if(temp == shift)
         {
             it->setCheckState(Qt::CheckState::Checked);
@@ -90,55 +90,55 @@ void CheckCoreWidget::setMask(int mask)
     }
 }
 
-void CheckCoreWidget::setCheckBoxState(int indexCheckBox, bool state)
+void cCheckCoreWidget::setCheckBoxState(int indexCheckBox, bool state)
 {
     if(state)
-        checkBoxContainer[indexCheckBox]->setCheckState(Qt::CheckState::Checked);
+        m_checkBoxContainer[indexCheckBox]->setCheckState(Qt::CheckState::Checked);
     else
-        checkBoxContainer[indexCheckBox]->setCheckState(Qt::CheckState::Unchecked);
+        m_checkBoxContainer[indexCheckBox]->setCheckState(Qt::CheckState::Unchecked);
 }
 
-void CheckCoreWidget::slot_CheckBoxClicked(bool state)
+void cCheckCoreWidget::slot_CheckBoxClicked(bool _state)
 {
     QObject* obj = QObject::sender();
 
     int core_id = 1;
-    for(auto it: checkBoxContainer)
+    for(auto it: m_checkBoxContainer)
     {
         if(it == qobject_cast<QCheckBox*>(obj))
         {
-            CAdvThreadPool::getInstance().changeAffinityMask(thread_id, core_id, state);
+            cAdvThreadPool::getInstance().changeAffinityMask(m_thread_id, core_id, _state);
             break;
         }
         core_id++;
     }
 }
 
-void CheckCoreWidget::setupUi(QWidget *CheckCoreWidget)
+void cCheckCoreWidget::setupUi(QWidget *_coreWidget)
 {
-    CheckCoreWidget->setWindowTitle(QApplication::translate("CheckCoreWidget", "Form", 0));
+    _coreWidget->setWindowTitle(QApplication::translate("CheckCoreWidget", "Form", 0));
 
-    if (CheckCoreWidget->objectName().isEmpty())
-        CheckCoreWidget->setObjectName(QStringLiteral("CheckCoreWidget"));
-    CheckCoreWidget->resize(294, 37);
+    if (_coreWidget->objectName().isEmpty())
+        _coreWidget->setObjectName(QStringLiteral("CheckCoreWidget"));
+    _coreWidget->resize(294, 37);
 
-    gridLayout = new QGridLayout(CheckCoreWidget);
-    gridLayout->setObjectName(QStringLiteral("gridLayout"));
-    horizontalLayout = new QHBoxLayout();
-    horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+    m_gridLayout = new QGridLayout(_coreWidget);
+    m_gridLayout->setObjectName(QStringLiteral("gridLayout"));
+    m_horizontalLayout = new QHBoxLayout();
+    m_horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
 
-    for(int i=0; i<coreQuantity; i++)
+    for(int i=0; i < m_coreQuantity; i++)
     {
-        checkBoxContainer.push_back(new QCheckBox(CheckCoreWidget));
+        m_checkBoxContainer.push_back(new QCheckBox(_coreWidget));
     }
 
-    for(int i=0; i<coreQuantity; i++)
+    for(int i=0; i < m_coreQuantity; i++)
     {
-        checkBoxContainer[i]->setObjectName(QString("checkBox_%1").arg(i+1));
-        horizontalLayout->addWidget(checkBoxContainer[i]);
-        checkBoxContainer[i]->setText(QString("%1").arg(i+1));
+        m_checkBoxContainer[i]->setObjectName(QString("checkBox_%1").arg(i+1));
+        m_horizontalLayout->addWidget(m_checkBoxContainer[i]);
+        m_checkBoxContainer[i]->setText(QString("%1").arg(i+1));
     }
 
-    gridLayout->addLayout(horizontalLayout, 0, 0, 1, 1);
+    m_gridLayout->addLayout(m_horizontalLayout, 0, 0, 1, 1);
 }
 

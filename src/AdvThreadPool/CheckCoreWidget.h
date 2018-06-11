@@ -18,30 +18,30 @@
 #include <QtWidgets/QWidget>
 #include "qevent.h"
 
-class CheckCoreWidget:public QWidget
+class cCheckCoreWidget:public QWidget
 {
     Q_OBJECT
 
 private://fields
-    int coreQuantity = 0;
-    int thread_id = 0;
-    QGridLayout* gridLayout;
-    QHBoxLayout* horizontalLayout;
-    std::vector<QCheckBox*> checkBoxContainer;
+    int m_coreQuantity = 0;
+    int m_thread_id = 0;
+    QGridLayout* m_gridLayout;
+    QHBoxLayout* m_horizontalLayout;
+    std::vector<QCheckBox*> m_checkBoxContainer;
 
 public://methods
-    CheckCoreWidget(QWidget *parent, int core_quantity, int id);
-    ~CheckCoreWidget(){}
+    cCheckCoreWidget(QWidget *_parent, int _core_quantity, int _id);
+    ~cCheckCoreWidget(){}
     int getMask() const;
-    void setMask(int mask);
+    void setMask(int _mask);
 
 private://methods
-    void setupUi(QWidget *CheckCoreWidget); // setupUi
+    void setupUi(QWidget *_coreWidget); // setupUi
     void mousePressEvent(QMouseEvent *event);
     void setCheckBoxState(int indexCheckBox, bool state);
 
 private slots:
-    void slot_CheckBoxClicked(bool state);
+    void slot_CheckBoxClicked(bool _state);
 
 };
 

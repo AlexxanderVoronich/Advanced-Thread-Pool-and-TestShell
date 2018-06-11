@@ -12,15 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QIntValidator v(0, 900, this);
     ui->lineEdit_ShortTaskQuantity->setValidator(&v);
 
-    warningJournal = new WarningJournal(this, QString("Notification box"));
-    addDockWidget(Qt::BottomDockWidgetArea, warningJournal->warningDockWidget);
+    warningJournal = new cWarningJournal(this, QString("Notification box"));
+    addDockWidget(Qt::BottomDockWidgetArea, warningJournal->m_warningDockWidget);
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
-    viewMenu->addAction(warningJournal->warningDockWidget->toggleViewAction());
+    viewMenu->addAction(warningJournal->m_warningDockWidget->toggleViewAction());
 
-    CPoolModes modes;
-    modes.threadPoolMode = eThreadPoolMode::REPEATED_TASK_MODE;
-    modes.stretchMode = eStretchMode::YES_STRETCH;
-    CAdvThreadPool::startThreadPool(2, 2, modes, "../etc/ThreadPoolSettings.ini");
+    cPoolModes modes;
+    modes.m_threadPoolMode = eThreadPoolMode::REPEATED_TASK_MODE;
+    modes.m_stretchMode = eStretchMode::YES_STRETCH;
+    cAdvThreadPool::startThreadPool(2, 2, modes, "../etc/ThreadPoolSettings.ini");
 
     pTaskContainer = new Tasks();
     pShortTaskGenerator = new ShortTaskGenerator();
@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     pToolBar->addAction(threadPoolAction);
     pToolBar->addAction(exitAction);
 
-    pThreadPoolDialog = new CAdvPoolGUI(this);
+    pThreadPoolDialog = new cAdvPoolGUI(this);
     pThreadPoolDialog->createThreadPoolShell();//create linking between thead pool and it's dialog
 
 }
@@ -60,7 +60,7 @@ void MainWindow::createActions()
 
 void MainWindow::createConnections()
 {
-    connect(this, SIGNAL(signal_AddWarning(QString, eLogWarning)), warningJournal, SLOT(slot_AddWarning(QString, eLogWarning)));
+    connect(this, SIGNAL(signal_AddWarning(QString, eLogWarning)), warningJournal, SLOT(slot_addWarning(QString, eLogWarning)));
     connect(threadPoolAction, SIGNAL(triggered()), this, SLOT(slot_OnThreadPool()));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(slot_OnExit()));
     connect(ui->pushButton_LongTask, SIGNAL(clicked()), this, SLOT(slot_CreateLongTask()));
@@ -69,7 +69,7 @@ void MainWindow::createConnections()
     connect(ui->pushButton_LongTask_Stop, SIGNAL(clicked()), this, SLOT(slot_StopLongTask()));
     connect(ui->pushButton_RepeatTask_Stop, SIGNAL(clicked()), this, SLOT(slot_StopRepeatTask()));
     connect(ui->pushButton_ShortTaskGenerator_Stop, SIGNAL(clicked()), this, SLOT(slot_StopShortTaskGenerator()));
-    //connect(CAdvThreadPool::getInstance().getEmitter(), SIGNAL())
+    //connect(cAdvThreadPool::getInstance().getEmitter(), SIGNAL())
 }
 
 void MainWindow::slot_OnThreadPool()
@@ -79,13 +79,13 @@ void MainWindow::slot_OnThreadPool()
 
 void MainWindow::slot_OnExit()
 {
-    CAdvThreadPool::stopThreadPool();
+    cAdvThreadPool::stopThreadPool();
     exit(0);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    CAdvThreadPool::stopThreadPool();
+    cAdvThreadPool::stopThreadPool();
     event->accept();
 }
 
@@ -98,40 +98,40 @@ void MainWindow::slot_CreateLongTask()
     if(!text.isEmpty())
     {
         QString longTaskName = QString("Long task '%1'").arg(text);
-        auto it = find_if(pTaskContainer->longTaskFutures.begin(),
-                        pTaskContainer->longTaskFutures.end(),
-                        [longTaskName](std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>> _future)
+        auto it = std::find_if(pTaskContainer->m_longTaskFutures.begin(),
+                        pTaskContainer->m_longTaskFutures.end(),
+                        [longTaskName](std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>> _future)
                         {
-                            if(_future->taskDescription == longTaskName)
+                            if(_future->m_taskDescription == longTaskName)
                                 return true;
                             else
                                 return false;
                         });
 
-        if(it == pTaskContainer->longTaskFutures.end())//task with this name absents
+        if(it == pTaskContainer->m_longTaskFutures.end())//task with this name absents
         {
             //create object with task-function
             LongTaskContainer* longTaskObject = new LongTaskContainer(longTaskName);
             //std::cout<<"ptr to longTaskObject = "<<longTaskObject<<std::endl;
             //create new long task
-            auto pLongTask = new CLongTask<LongTaskContainer, qint32>(longTaskObject,
+            auto pLongTask = new cLongTask<LongTaskContainer, qint32>(longTaskObject,
                                                     &LongTaskContainer::longTaskFunction,
                                                     &LongTaskContainer::stopLongTaskFunction,
                                                     longTaskName);
 
-            auto pFuture = CAdvThreadPool::launchRunnableObject<qint32, CLongTask<LongTaskContainer, qint32>>(pLongTask);
+            auto pFuture = cAdvThreadPool::launchRunnableObject<qint32, cLongTask<LongTaskContainer, qint32>>(pLongTask);
             if(pFuture != nullptr)
             {
-                pTaskContainer->longTaskFutures.push_back(pFuture);
-                emit signal_AddWarning(QString("Create %1").arg(longTaskName), eLogWarning::message);
+                pTaskContainer->m_longTaskFutures.push_back(pFuture);
+                emit signal_AddWarning(QString("Create %1").arg(longTaskName), eLogWarning::MESSAGE);
             }
             else
-                emit signal_AddWarning(QString("Error of creation: no free unshared thread"), eLogWarning::warning);
+                emit signal_AddWarning(QString("Error of creation: no free unshared thread"), eLogWarning::WARNING);
 
         }
         else //task already exists
         {
-            emit signal_AddWarning(QString("Error of creation: %1 already exists").arg(longTaskName), eLogWarning::warning);
+            emit signal_AddWarning(QString("Error of creation: %1 already exists").arg(longTaskName), eLogWarning::WARNING);
         }
     }
 }
@@ -145,49 +145,49 @@ void MainWindow::slot_StopLongTask()
     if(!text.isEmpty())
     {
         QString longTaskName = QString("Long task '%1'").arg(text);
-        auto foundFuture = find_if(pTaskContainer->longTaskFutures.begin(),
-            pTaskContainer->longTaskFutures.end(),
-            [longTaskName](std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>> _future)
+        auto foundFuture = std::find_if(pTaskContainer->m_longTaskFutures.begin(),
+            pTaskContainer->m_longTaskFutures.end(),
+            [longTaskName](std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>> _future)
             {
-                if(_future->taskDescription == longTaskName)
+                if(_future->m_taskDescription == longTaskName)
                     return true;
                 else
                     return false;
             });
 
-        if(foundFuture != pTaskContainer->longTaskFutures.end())//task with this name was found
+        if(foundFuture != pTaskContainer->m_longTaskFutures.end())//task with this name was found
         {
-            (*foundFuture)->pTask->stopRunnable();//stop long task
-            emit signal_AddWarning(QString("Stop %1").arg(longTaskName), eLogWarning::message);
+            (*foundFuture)->m_task->stopRunnable();//stop long task
+            emit signal_AddWarning(QString("Stop %1").arg(longTaskName), eLogWarning::MESSAGE);
 
         }
         else
         {
-            emit signal_AddWarning(QString("Error of stop: %1 don't exists").arg(longTaskName), eLogWarning::warning);
+            emit signal_AddWarning(QString("Error of stop: %1 don't exists").arg(longTaskName), eLogWarning::WARNING);
         }
     }
 }
 
 void MainWindow::cleanLongFuturesIfNeed()
 {
-    std::vector<std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>>> temp_vector(pTaskContainer->longTaskFutures.size());
+    std::vector<std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>>> temp_vector(pTaskContainer->m_longTaskFutures.size());
 
-    auto it = std::copy_if(pTaskContainer->longTaskFutures.begin(),
-                           pTaskContainer->longTaskFutures.end(),
+    auto it = std::copy_if(pTaskContainer->m_longTaskFutures.begin(),
+                           pTaskContainer->m_longTaskFutures.end(),
                            temp_vector.begin(),
-                           [](std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>> _future)
+                           [](std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>> _future)
                            {
-                               return _future->ready; //task was executed or not
+                               return _future->m_ready; //task was executed or not
                            });
 
     temp_vector.resize(std::distance(temp_vector.begin(),it));  // shrink container to new size
 
     for(auto temp_future: temp_vector)
     {
-        QString longTaskName = temp_future->taskDescription;
-        emit signal_AddWarning(QString("Delete object what incapsulate %1").arg(longTaskName), eLogWarning::warning);
+        QString longTaskName = temp_future->m_taskDescription;
+        emit signal_AddWarning(QString("Delete object what incapsulate %1").arg(longTaskName), eLogWarning::WARNING);
 
-        LongTaskContainer* ptr = static_cast<LongTaskContainer*>(temp_future->pHostObject);
+        LongTaskContainer* ptr = static_cast<LongTaskContainer*>(temp_future->m_hostObject);
 
         //delete object that contains task-function
         if(ptr != nullptr)
@@ -200,10 +200,10 @@ void MainWindow::cleanLongFuturesIfNeed()
     if(!temp_vector.empty())
     {
         //remove future from array
-        pTaskContainer->longTaskFutures.remove_if(
-            [](std::shared_ptr<CAdvFuture<qint32, CLongTask<LongTaskContainer, qint32>>> _future)
+        pTaskContainer->m_longTaskFutures.remove_if(
+            [](std::shared_ptr<cAdvFuture<qint32, cLongTask<LongTaskContainer, qint32>>> _future)
         {
-            return _future->ready; //task was executed or not
+            return _future->m_ready; //task was executed or not
         });
 
         temp_vector.clear();
@@ -218,24 +218,24 @@ void MainWindow::slot_CreateRepeatTask()
     if(!text.isEmpty())
     {
         QString repeatTaskName = QString("Repeat task '%1'").arg(text);
-        auto it = find_if(pTaskContainer->repeatTaskFutures.begin(),
-                pTaskContainer->repeatTaskFutures.end(),
-                [repeatTaskName](std::shared_ptr<CAdvFuture<qint32, CRepeatTask<Tasks, qint32>>> _future)
+        auto it = find_if(pTaskContainer->m_repeatTaskFutures.begin(),
+                pTaskContainer->m_repeatTaskFutures.end(),
+                [repeatTaskName](std::shared_ptr<cAdvFuture<qint32, cRepeatTask<Tasks, qint32>>> _future)
                 {
-                  if(_future->taskDescription == repeatTaskName)
+                  if(_future->m_taskDescription == repeatTaskName)
                       return true;
                   else
                       return false;
                 });
 
-        if(it == pTaskContainer->repeatTaskFutures.end())//task with this name absents
+        if(it == pTaskContainer->m_repeatTaskFutures.end())//task with this name absents
         {
             //1)create new repeat task (usual variant)
-/*            auto repeatTask = new CRepeatTask<Tasks, qint32>(pTaskContainer,
+/*            auto repeatTask = new cRepeatTask<Tasks, qint32>(pTaskContainer,
                                                     &Tasks::repeatTaskFunction,
                                                     1000,
                                                     repeatTaskName);
-            auto future_of_repeatTask = CAdvThreadPool::launchRunnableObject<qint32, CRepeatTask<Tasks, qint32>>(repeatTask);
+            auto future_of_repeatTask = cAdvThreadPool::launchRunnableObject<qint32, cRepeatTask<Tasks, qint32>>(repeatTask);
 */
             //2) create new repeat task (macross variant)
             auto repeatTask = macros_CreateAndLaunchRepeatTask(repeatTask,\
@@ -248,16 +248,16 @@ void MainWindow::slot_CreateRepeatTask()
 
             if(future_of_repeatTask != nullptr)
             {
-                pTaskContainer->repeatTaskFutures.push_back(future_of_repeatTask);
-                emit signal_AddWarning(QString("Create %1").arg(repeatTaskName), eLogWarning::message);
+                pTaskContainer->m_repeatTaskFutures.push_back(future_of_repeatTask);
+                emit signal_AddWarning(QString("Create %1").arg(repeatTaskName), eLogWarning::MESSAGE);
             }
             else
-                emit signal_AddWarning(QString("Error of repeat task launch"), eLogWarning::warning);
+                emit signal_AddWarning(QString("Error of repeat task launch"), eLogWarning::WARNING);
 
         }
         else //task already exists
         {
-            emit signal_AddWarning(QString("Error of creation: %1 already exists").arg(repeatTaskName), eLogWarning::warning);
+            emit signal_AddWarning(QString("Error of creation: %1 already exists").arg(repeatTaskName), eLogWarning::WARNING);
         }
     }
 }
@@ -270,35 +270,35 @@ void MainWindow::slot_StopRepeatTask()
     {
         QString repeatTaskName = QString("Repeat task '%1'").arg(text);
         auto foundFuture = find_if(
-            pTaskContainer->repeatTaskFutures.begin(),
-            pTaskContainer->repeatTaskFutures.end(),
-            [repeatTaskName](std::shared_ptr<CAdvFuture<qint32, CRepeatTask<Tasks, qint32>>> _future)
+            pTaskContainer->m_repeatTaskFutures.begin(),
+            pTaskContainer->m_repeatTaskFutures.end(),
+            [repeatTaskName](std::shared_ptr<cAdvFuture<qint32, cRepeatTask<Tasks, qint32>>> _future)
             {
-               if(_future->taskDescription == repeatTaskName)
+               if(_future->m_taskDescription == repeatTaskName)
                    return true;
                else
                    return false;
             });
 
-        if(foundFuture == pTaskContainer->repeatTaskFutures.end())//task with this name was found
+        if(foundFuture == pTaskContainer->m_repeatTaskFutures.end())//task with this name was found
         {
-            emit signal_AddWarning(QString("Error of stop: %1 don't exists").arg(repeatTaskName), eLogWarning::warning);
+            emit signal_AddWarning(QString("Error of stop: %1 don't exists").arg(repeatTaskName), eLogWarning::WARNING);
             return;
         }
 
-        CAdvThreadPool::stopRepeatTask((*foundFuture)->repeatTaskID);
+        cAdvThreadPool::stopRepeatTask((*foundFuture)->m_repeatTaskID);
 
         //remove task from array
-        pTaskContainer->repeatTaskFutures.remove_if(
-        [repeatTaskName](std::shared_ptr<CAdvFuture<qint32, CRepeatTask<Tasks, qint32>>> _future)
+        pTaskContainer->m_repeatTaskFutures.remove_if(
+        [repeatTaskName](std::shared_ptr<cAdvFuture<qint32, cRepeatTask<Tasks, qint32>>> _future)
         {
-            if(_future->taskDescription == repeatTaskName)
+            if(_future->m_taskDescription == repeatTaskName)
                 return true;
             else
                 return false;
         });
 
-        emit signal_AddWarning(QString("Stop %1").arg(repeatTaskName), eLogWarning::message);
+        emit signal_AddWarning(QString("Stop %1").arg(repeatTaskName), eLogWarning::MESSAGE);
     }
 }
 
@@ -312,11 +312,11 @@ void MainWindow::slot_ShortTaskGeneratorLaunch()
 
         if(!pShortTaskGenerator->start(shortTaskQuantity))
         {
-            emit signal_AddWarning(QString("Error: Start of Generator"), eLogWarning::warning);
+            emit signal_AddWarning(QString("Error: Start of Generator"), eLogWarning::WARNING);
         }
     }
     else
-        emit signal_AddWarning(QString("Error: Start of Generator: bad value"), eLogWarning::warning);
+        emit signal_AddWarning(QString("Error: Start of Generator: bad value"), eLogWarning::WARNING);
 
 }
 
