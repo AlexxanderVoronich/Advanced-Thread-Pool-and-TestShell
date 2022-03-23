@@ -4,3 +4,8 @@ etc
 bin
 src-build
 src-build-qt
+moc
+ui
+*.vcxproj
+*.sln
+*.filters

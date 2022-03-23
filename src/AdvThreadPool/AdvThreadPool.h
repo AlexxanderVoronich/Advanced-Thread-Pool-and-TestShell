@@ -24,7 +24,7 @@
 #include <QtDebug>
 
 /////////////////////////////////
-class cAdvThreadPool
+class IMPORT_EXPORT cAdvThreadPool
 {
     friend class cAdvPoolGUI;
     friend class cCheckCoreWidget;
@@ -158,26 +158,26 @@ public://methods
                     getSettings().ID_TASK_COUNTER = 0;
 
                 cAdvThreadPool::getInstance().addRepeatedTask(runClosure, repeatTaskID, _runObject->getRepeatTime(), _runObject->getDescription());
-                pFutureData->m_repeatTaskID = repeatTaskID;
+                pFutureData->m_repeatTaskId = repeatTaskID;
             }
         }
 
         return pFutureData;
     }
 
-    static bool stopRepeatTask(int taskID);
+    static bool stopRepeatTask(int _taskId);
 
 private://methods
     template<typename _R, class _RUNNABLE>
-    static runnable_closure createRunClosure(std::shared_ptr<cAdvFuture<_R, _RUNNABLE>> pFutureData, _RUNNABLE* _runObject, int thread_id)
+    static runnable_closure createRunClosure(std::shared_ptr<cAdvFuture<_R, _RUNNABLE>> _pFutureData, _RUNNABLE* _runObject, int _threadId)
     {
         auto emitter = getInstance().getEmitter();
         std::function<typename _RUNNABLE::_RETURN_TYPE()> bind_run = std::bind(&_RUNNABLE::run, *_runObject);
-        pFutureData->m_task = _runObject;
-        pFutureData->m_hostObject = _runObject->getProcessor();
+        _pFutureData->m_task = _runObject;
+        _pFutureData->m_hostObject = _runObject->getProcessor();
 
         //create and return the lambda with runnable object(task) inside its context
-        return [thread_id, pFutureData, _runObject, bind_run, emitter](int _mode, int _value)->QString
+        return [_threadId, _pFutureData, _runObject, bind_run, emitter](int _mode, int _value)->QString
         {
             switch(_mode)
             {
@@ -185,58 +185,58 @@ private://methods
                 {
                     if(_runObject != nullptr)
                     {
-                        pFutureData->m_taskDescription = _runObject->getDescription();
-                        pFutureData->m_taskType = _runObject->getType();
-                        pFutureData->m_ready = false;
-                        if(pFutureData->m_taskType == eRunnableType::LONG_TASK)
+                        _pFutureData->m_taskDescription = _runObject->getDescription();
+                        _pFutureData->m_taskType = _runObject->getType();
+                        _pFutureData->m_ready = false;
+                        if(_pFutureData->m_taskType == eRunnableType::LONG_TASK)
                         {
-                            emitter->sendSignal_Who_forUnsharedThread(thread_id, pFutureData->m_taskType, pFutureData->m_taskDescription);
+                            emitter->sendSignal_Who_forUnsharedThread(_threadId, _pFutureData->m_taskType, _pFutureData->m_taskDescription);
                             int longTaskCounter = cAdvThreadPool::getInstance().getLongTaskQuantity();
                             emitter->sendSignal_longTaskQuantity(longTaskCounter);
                         }
-                        else if(pFutureData->m_taskType == eRunnableType::LONG_TASK_EXTRA)
+                        else if(_pFutureData->m_taskType == eRunnableType::LONG_TASK_EXTRA)
                         {
-                            emitter->sendSignal_Who_forUnsharedThread(thread_id, pFutureData->m_taskType, pFutureData->m_taskDescription);
+                            emitter->sendSignal_Who_forUnsharedThread(_threadId, _pFutureData->m_taskType, _pFutureData->m_taskDescription);
                             int longTaskCounter = cAdvThreadPool::getInstance().getLongTaskQuantity();
                             emitter->sendSignal_longTaskQuantity(longTaskCounter);
                         }
 
                         //call the task
-                        pFutureData->m_data = bind_run();
+                        _pFutureData->m_data = bind_run();
 
-                        if(pFutureData->m_taskType == eRunnableType::LONG_TASK)//delete wrapper for task (CRunnable) after task processing
+                        if(_pFutureData->m_taskType == eRunnableType::LONG_TASK)//delete wrapper for task (CRunnable) after task processing
                         {
                             delete _runObject;
                             int longTaskCounter = cAdvThreadPool::getInstance().getLongTaskQuantity();
                             --longTaskCounter;
                             emitter->sendSignal_longTaskQuantity(longTaskCounter);
                         }
-                        else if(pFutureData->m_taskType == eRunnableType::LONG_TASK_EXTRA)//delete wrapper for task (CRunnable) after task processing
+                        else if(_pFutureData->m_taskType == eRunnableType::LONG_TASK_EXTRA)//delete wrapper for task (CRunnable) after task processing
                         {
                             if(_runObject->getDeleteExtraThreadSign())
-                                cAdvThreadPool::getInstance().deleteExtraThread(thread_id);
+                                cAdvThreadPool::getInstance().deleteExtraThread(_threadId);
                             delete _runObject;
                         }
-                        else if(pFutureData->m_taskType == eRunnableType::SHORT_TASK)//delete wrapper for task (CRunnable) after task processing
+                        else if(_pFutureData->m_taskType == eRunnableType::SHORT_TASK)//delete wrapper for task (CRunnable) after task processing
                         {
                             delete _runObject;
                         }
-                        else if(pFutureData->m_taskType == eRunnableType::REPEAT_TASK)
+                        else if(_pFutureData->m_taskType == eRunnableType::REPEAT_TASK)
                         {
-                            if(pFutureData->m_data > 0)
-                                cAdvThreadPool::getInstance().updateTimePeriodForRepeatTask(pFutureData->m_repeatTaskID, pFutureData->m_data);
-                            else if(pFutureData->m_data == -1)
+                            if(_pFutureData->m_data > 0)
+                                cAdvThreadPool::getInstance().updateTimePeriodForRepeatTask(_pFutureData->m_repeatTaskId, _pFutureData->m_data);
+                            else if(_pFutureData->m_data == -1)
                             {
-                                cAdvThreadPool::getInstance().stopRunnable_RepeatTask(pFutureData->m_repeatTaskID);
+                                cAdvThreadPool::getInstance().stopRunnable_RepeatTask(_pFutureData->m_repeatTaskId);
                                 delete _runObject;
                             }
                         }
 
-                        pFutureData->m_ready = true;
+                        _pFutureData->m_ready = true;
                     }
                     else
                     {
-                        pFutureData->m_taskDescription = QString("None");
+                        _pFutureData->m_taskDescription = QString("None");
                     }
                     break;
                 }
@@ -256,58 +256,58 @@ private://methods
 
                 case int(cAdvThread::eRUN_MODES::WHO):
                 {
-                    pFutureData->m_taskDescription = _runObject->getDescription();
-                    return pFutureData->m_taskDescription;
+                    _pFutureData->m_taskDescription = _runObject->getDescription();
+                    return _pFutureData->m_taskDescription;
                 }
 
                 case int(cAdvThread::eRUN_MODES::RUN_TYPE):
                 {
-                    pFutureData->m_taskType = _runObject->getType();
-                    return QString("%1").arg(pFutureData->m_taskType);
+                    _pFutureData->m_taskType = _runObject->getType();
+                    return QString("%1").arg(_pFutureData->m_taskType);
                 }
 
                 case int(cAdvThread::eRUN_MODES::GET_COUNTER):
                 {
-                    return QString::number(pFutureData->m_executionCounter);
+                    return QString::number(_pFutureData->m_executionCounter);
                 }
 
                 case int(cAdvThread::eRUN_MODES::DECREASE_COUNTER):
                 {
-                    --(pFutureData->m_executionCounter);
-                    return QString::number(pFutureData->m_executionCounter);
+                    --(_pFutureData->m_executionCounter);
+                    return QString::number(_pFutureData->m_executionCounter);
                 }
 
                 case int(cAdvThread::eRUN_MODES::START_TIMER_FOR_INTERVAL):
                 {
-                    pFutureData->m_timeIntervalForHoldOverShortTask = _value;
-                    pFutureData->m_qt_timer.start();
+                    _pFutureData->m_timeIntervalForHoldOverShortTask = _value;
+                    _pFutureData->m_qt_timer.start();
                     break;
                 }
 
                 case int(cAdvThread::eRUN_MODES::IS_TIMER_OVER):
                 {
-                    if(pFutureData->m_timeIntervalForHoldOverShortTask == 0)
+                    if(_pFutureData->m_timeIntervalForHoldOverShortTask == 0)
                     {
-                        pFutureData->m_resultIsTimerOver = true;
+                        _pFutureData->m_resultIsTimerOver = true;
                         return QString::number(1);
                     }
-                    else if(pFutureData->m_qt_timer.isValid())
+                    else if(_pFutureData->m_qt_timer.isValid())
                     {
-                        int timeout = pFutureData->m_qt_timer.elapsed();
-                        if(timeout >= pFutureData->m_timeIntervalForHoldOverShortTask)
+                        int timeout = _pFutureData->m_qt_timer.elapsed();
+                        if(timeout >= _pFutureData->m_timeIntervalForHoldOverShortTask)
                         {
-                            pFutureData->m_resultIsTimerOver = true;
+                            _pFutureData->m_resultIsTimerOver = true;
                             return QString::number(1);
                         }
                         else
                         {
-                            pFutureData->m_resultIsTimerOver = false;
+                            _pFutureData->m_resultIsTimerOver = false;
                             return QString::number(0);
                         }
                     }
                 }
             }
-            return pFutureData->m_taskDescription;
+            return _pFutureData->m_taskDescription;
         };
     }
 

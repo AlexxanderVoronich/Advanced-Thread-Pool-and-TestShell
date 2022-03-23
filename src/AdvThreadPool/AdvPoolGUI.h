@@ -19,7 +19,7 @@ namespace Ui
     class ThreadPoolShell;
 }
 
-class cAdvPoolGUI:public QMainWindow
+class IMPORT_EXPORT cAdvPoolGUI:public QMainWindow
 {
     Q_OBJECT
 

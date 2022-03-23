@@ -6,7 +6,7 @@
 #include "ServiceStructures.h"
 
 
-class cWarningJournal: public QObject
+class IMPORT_EXPORT cWarningJournal: public QObject
 {
     Q_OBJECT
 public:

@@ -9,8 +9,9 @@
 #include "AdvThread.h"
 #include "ServiceStructures.h"
 #include <QObject>
+#include "DllHeader.h"
 
-class cAdvPoolEmitter: public QObject
+class IMPORT_EXPORT cAdvPoolEmitter: public QObject
 {
     Q_OBJECT
 

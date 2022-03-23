@@ -9,6 +9,7 @@
 #include <QDockWidget>
 #include <QElapsedTimer>
 #include <functional>
+#include "DllHeader.h"
 
 enum class eLogWarning{WARNING = 0, MESSAGE};
 enum class eAffinityMode{NO_AFFINITY = 1, YES_AFFINITY, No_Affinity_Without_GUI_Edition, Yes_Affinity_Without_GUI_Edition};
@@ -18,7 +19,7 @@ enum class eStretchMode{NO_STRETCH, YES_STRETCH};
 Q_DECLARE_METATYPE(eLogWarning)
 Q_DECLARE_METATYPE(eAffinityMode)
 
-class cPoolModes
+class IMPORT_EXPORT cPoolModes
 {
 public://data
     //ORDINARY_MODE or USE_REPEATED_TASK_MODE(create of system runnable task)
@@ -63,7 +64,7 @@ public://data
     QString m_taskDescription;
     int m_executionCounter = 3;
     int m_taskType = 0;
-    int m_repeatTaskID = 0;
+    int m_repeatTaskId = 0;
     int m_timeIntervalForHoldOverShortTask = 0;
     QElapsedTimer m_qt_timer;
     bool m_resultIsTimerOver = false;

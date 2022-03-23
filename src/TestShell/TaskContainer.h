@@ -2,12 +2,17 @@
 #define TASKCONTAINER_H
 #include <qglobal.h>
 #include <list>
-#include "AdvThreadPool/AdvThreadPool.h"
+//#include "AdvThreadPool/AdvThreadPool.h"
+#include <QString>
+#include <memory>
+#include <AdvThreadPool/ServiceStructures.h>
+#include <AdvThreadPool/Runnable.h>
 
 class LongTaskContainer
 {
     bool m_runnableSign = false;
     QString m_description;
+
 public:
     LongTaskContainer(QString _text);
     ~LongTaskContainer();

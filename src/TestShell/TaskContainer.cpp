@@ -1,6 +1,7 @@
 #include "TaskContainer.h"
 #include <thread>
 #include <chrono>
+#include <iostream>
 
 Tasks::Tasks()
 {
@@ -52,7 +53,7 @@ ShortTaskGenerator::~ShortTaskGenerator()
 
 qint32 ShortTaskGenerator::generatorMainFunction(qint32 shortTaskQuantity)
 {
-    while(m_runnableSign)
+    /*while(m_runnableSign)
     {
         for(int i=0; i<shortTaskQuantity; ++i)
         {
@@ -67,7 +68,7 @@ qint32 ShortTaskGenerator::generatorMainFunction(qint32 shortTaskQuantity)
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    }*/
     return 0;
 }
 
@@ -86,7 +87,7 @@ bool ShortTaskGenerator::start(qint32 shortTaskQuantity)
     if(m_runnableSign)
         return false;
 
-    m_runnableSign = true;
+    /*m_runnableSign = true;
     auto tupleWithArguments = std::make_tuple<>(shortTaskQuantity);
     auto pGeneratorMainTask = new cLongTask<ShortTaskGenerator, qint32, qint32>(this,
                                             &ShortTaskGenerator::generatorMainFunction,
@@ -98,5 +99,5 @@ bool ShortTaskGenerator::start(qint32 shortTaskQuantity)
     if(pFuture == nullptr)
         return false;
     else
-        return true;
+        return true;*/
 }

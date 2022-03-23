@@ -9,6 +9,7 @@
 #include <QString>
 #include <functional>
 #include <iostream>
+#include "DllHeader.h"
 
 enum eRunnableType{EMPTY_TASK=0, LONG_TASK=1, SHORT_TASK, REPEAT_TASK, LONG_TASK_EXTRA};
 

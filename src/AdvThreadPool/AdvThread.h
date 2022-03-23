@@ -16,11 +16,12 @@
 #include <condition_variable>
 #include <chrono>
 #include <QObject>
+#include "DllHeader.h"
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
 
-class cAdvThread
+class IMPORT_EXPORT cAdvThread
 {
 public://enums
     enum class eThreadType{THREAD_NO_TYPE = 0, THREAD_SHARED, THREAD_NOT_SHARED, THREAD_NOT_SHARED_EXTRA};

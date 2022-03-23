@@ -1,8 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
 #include "AdvThreadPool/AdvThreadPool.h"
 #include "AdvThreadPool/AdvPoolGUI.h"
 #include "AdvThreadPool/AdvMacros.h"
+#include "AdvThreadPool/Runnable.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,8 +22,10 @@ MainWindow::MainWindow(QWidget *parent) :
     cPoolModes modes;
     modes.m_threadPoolMode = eThreadPoolMode::REPEATED_TASK_MODE;
     modes.m_stretchMode = eStretchMode::YES_STRETCH;
-    cAdvThreadPool::startThreadPool(2, 2, modes, "../etc/ThreadPoolSettings.ini");
 
+    cAdvThreadPool::startThreadPool(2, 2, modes, "../etc/ThreadPoolSettings.ini");
+    //cDllThreadPool::startThreadPool(2, 2, 1, 1, "../etc/ThreadPoolSettings.ini");
+    
     pTaskContainer = new Tasks();
     pShortTaskGenerator = new ShortTaskGenerator();
     createActions();
@@ -238,7 +242,8 @@ void MainWindow::slot_CreateRepeatTask()
             auto future_of_repeatTask = cAdvThreadPool::launchRunnableObject<qint32, cRepeatTask<Tasks, qint32>>(repeatTask);
 */
             //2) create new repeat task (macross variant)
-            auto repeatTask = macros_CreateAndLaunchRepeatTask(repeatTask,\
+             
+             auto repeatTask = macros_CreateAndLaunchRepeatTask(repeatTask,\
                                                                 pTaskContainer,\
                                                                 Tasks,\
                                                                 repeatTaskFunction,\
@@ -246,13 +251,13 @@ void MainWindow::slot_CreateRepeatTask()
                                                                 1000,\
                                                                 repeatTaskName);
 
-            if(future_of_repeatTask != nullptr)
-            {
-                pTaskContainer->m_repeatTaskFutures.push_back(future_of_repeatTask);
-                emit signal_AddWarning(QString("Create %1").arg(repeatTaskName), eLogWarning::MESSAGE);
-            }
-            else
-                emit signal_AddWarning(QString("Error of repeat task launch"), eLogWarning::WARNING);
+             if (future_of_repeatTask != nullptr)
+             {
+                 pTaskContainer->m_repeatTaskFutures.push_back(future_of_repeatTask);
+                 emit signal_AddWarning(QString("Create %1").arg(repeatTaskName), eLogWarning::MESSAGE);
+             }
+             else
+                 emit signal_AddWarning(QString("Error of repeat task launch"), eLogWarning::WARNING);
 
         }
         else //task already exists
@@ -286,7 +291,7 @@ void MainWindow::slot_StopRepeatTask()
             return;
         }
 
-        cAdvThreadPool::stopRepeatTask((*foundFuture)->m_repeatTaskID);
+        cAdvThreadPool::stopRepeatTask((*foundFuture)->m_repeatTaskId);
 
         //remove task from array
         pTaskContainer->m_repeatTaskFutures.remove_if(
