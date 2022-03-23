@@ -39,9 +39,9 @@ public://methods
     {
         emit signal_LongTaskQuantity(_quantity);
     }
-    void sendSignal_MeanCountTasks(int _id, QString _count)
+    void sendSignal_AverageQuantityOfTasks(int _id, QString _count)
     {
-        emit signal_SharedThread_MeanCountTasks(_id, _count);
+        emit signal_SharedThread_AverageQuantityOfTasks(_id, _count);
     }
     void sendSignal_DeleteLongTask(int _id)
     {
@@ -107,7 +107,7 @@ signals:
     void signal_UnsharedThread_DeleteLongTask(int);
     void signal_UnsharedThread_DeleteExtraLongTask(int);
     void signal_LongTaskQuantity(int);
-    void signal_SharedThread_MeanCountTasks(int, QString);
+    void signal_SharedThread_AverageQuantityOfTasks(int, QString);
     void signal_AddRepeatTask(int, int, QString, int);
     void signal_DeleteRepeatTask(int);
     void signal_EditRepeatTaskTime(int, int);

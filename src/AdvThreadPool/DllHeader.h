@@ -6,13 +6,20 @@
 #include <string>
 #include <memory>
 
+#if defined(BUILD_STATIC)
+#define IMPORT_EXPORT
+#else
+
 #if defined( BUILD_DLL )
 #define IMPORT_EXPORT __declspec(dllexport)
 #else
 #define IMPORT_EXPORT __declspec(dllimport)
 #endif
 
-extern "C" IMPORT_EXPORT void openPool();
+#endif
+
+//extern "C" IMPORT_EXPORT void openPool();
+IMPORT_EXPORT void openPool();
 
 typedef void (CALLBACK *FPTR)(void);
 class cAdvPoolGUI;

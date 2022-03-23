@@ -2,7 +2,6 @@
 #define TASKCONTAINER_H
 #include <qglobal.h>
 #include <list>
-//#include "AdvThreadPool/AdvThreadPool.h"
 #include <QString>
 #include <memory>
 #include <AdvThreadPool/ServiceStructures.h>
@@ -28,10 +27,10 @@ public:
     ShortTaskGenerator();
     ~ShortTaskGenerator();
 
-    qint32 generatorMainFunction(qint32 shortTaskQuantity);
+    qint32 generate(qint32 shortTaskQuantity);
     qint32 shortTaskFunction(QString taskName);
 
-    void stopGenerator();
+    void stop();
     bool start(qint32 shortTaskQuantity);
 };
 

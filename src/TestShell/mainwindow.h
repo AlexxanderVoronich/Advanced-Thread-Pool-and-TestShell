@@ -5,7 +5,6 @@
 #include <QMainWindow>
 #include <QStandardItemModel>
 #include <QToolBar>
-#include <AdvThreadPool/WarningJournal.h>
 
 namespace Ui 
 {
@@ -13,32 +12,32 @@ namespace Ui
 }
 
 class cAdvPoolGUI;
+class cWarningJournal;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 private://fields
-    Ui::AdvancedThreadPoolTestShell *ui;
-    QToolBar *pToolBar = nullptr;
+    Ui::AdvancedThreadPoolTestShell *m_ui = nullptr;
+    QToolBar *m_toolBar = nullptr;
 
-    QAction* threadPoolAction = nullptr;
-    QAction* exitAction = nullptr;
+    QAction* m_threadPoolAction = nullptr;
+    QAction* m_exitAction = nullptr;
 
-    cAdvPoolGUI* pThreadPoolDialog = nullptr;
-    Tasks* pTaskContainer = nullptr;
-    ShortTaskGenerator* pShortTaskGenerator = nullptr;
-
-    cWarningJournal* warningJournal = nullptr;
+    cAdvPoolGUI* m_threadPoolDialog = nullptr;
+    Tasks* m_taskContainer = nullptr;
+    ShortTaskGenerator* m_shortTaskGenerator = nullptr;
+    cWarningJournal* m_warningJournal = nullptr;
 
 public://methods
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *_parent = 0);
     ~MainWindow();
 
 private://methods
     void createActions();
     void createConnections();    
     void cleanLongFuturesIfNeed();    
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *_event);
 
 private slots:
     void slot_OnThreadPool();
@@ -51,9 +50,7 @@ private slots:
     void slot_StopShortTaskGenerator();
 
 signals:
-    void signal_AddWarning(QString text, eLogWarning);
-
-
+    void signal_AddWarning(QString _text, eLogWarning);
 };
 
 #endif // MAINWINDOW_H

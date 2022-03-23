@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui xml
-CONFIG	+= qt warn_on console c++11
+CONFIG	+= qt warn_on console c++17
 DESTDIR  = ../../bin
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -16,6 +16,7 @@ DEPENDPATH += . debug forms
 MOC_DIR += moc
 UI_DIR += ui
 OBJECTS_DIR = ../../obj
+#DEFINES += BUILD_STATIC
 
 INCLUDEPATH += . ./ui ./moc ./..
 

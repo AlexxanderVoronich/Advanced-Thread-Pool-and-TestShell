@@ -32,7 +32,7 @@ private://fields
     cWarningJournal* m_warningJournal = nullptr;
 
 public://methods
-    cAdvPoolGUI(QWidget* _parent = 0, Qt::WindowFlags _flags = 0);
+    cAdvPoolGUI(QWidget* _parent = 0, Qt::WindowFlags _flags = Qt::Widget);
     ~cAdvPoolGUI();
     void createThreadPoolShell();
 
@@ -53,9 +53,9 @@ public slots:
     void slot_startClicked();
     void slot_apply();
     void slot_dialogHide();
-    void slot_sharedThread_meanCountTasks(int _id, QString _count);
+    void slot_sharedThread_averageQuantityOfTasks(int _id, QString _count);
     void slot_addRepeatTask(int _taskId, int _time, QString _who, int _repeatTaskQuantity);
-    void slot_deleteRepeatTask(int _taskId);
+    void slot_deleteRepeatTask(int _task_id);
     void slot_editRepeatTaskTime(int _taskId, int _time);
     void slot_affinityMode(int _index);
     void slot_setQuantityCores(int _quantityCores);

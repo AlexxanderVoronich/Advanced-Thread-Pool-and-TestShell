@@ -69,7 +69,7 @@ bool cAdvThreadPool::createThreadPool(int unsharedThreadsQuantity, int sharedThr
             if(affinityMode == eAffinityMode::YES_AFFINITY ||
                 affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition)
                 pThread->setCoreMask(m_poolSettings.m_masks[i]);
-            threadsArray.push_back(pThread);
+            m_threadsArray.push_back(pThread);
         }
         for (; i<m_poolSettings.getQuantityUnsharedThreads()+m_poolSettings.getQuantitySharedThreads(); i++)
         {
@@ -79,7 +79,7 @@ bool cAdvThreadPool::createThreadPool(int unsharedThreadsQuantity, int sharedThr
             if(affinityMode == eAffinityMode::YES_AFFINITY ||
                 affinityMode == eAffinityMode::Yes_Affinity_Without_GUI_Edition)
                 pThread->setCoreMask(m_poolSettings.m_masks[i]);
-            threadsArray.push_back(pThread);
+            m_threadsArray.push_back(pThread);
         }
 
         m_poolSettings.m_isPoolStarted = true;
@@ -105,11 +105,11 @@ bool cAdvThreadPool::createThreadPool(int unsharedThreadsQuantity, int sharedThr
 
 adv_thread_ptr cAdvThreadPool::createAdditionalNotSharedThread(int& _id)
 {
-    std::unique_lock<std::mutex> locker(additionalThreadsMutex);
-    int extraThreadsQuantity = 1000 + additionalThreadsArray.size();
+    std::unique_lock<std::mutex> locker(m_additionalThreadsMutex);
+    int extraThreadsQuantity = 1000 + m_additionalThreadsArray.size();
     adv_thread_ptr pThread(new cAdvThread(extraThreadsQuantity+1, m_poolSettings.m_coreQuantity));
     pThread->setThreadType(cAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA);
-    additionalThreadsArray.push_back(pThread);
+    m_additionalThreadsArray.push_back(pThread);
     QString who = pThread->getWho();
     _id = pThread->getThreadNumber();
 
@@ -149,14 +149,14 @@ int cAdvThreadPool::startPoolMainFunction()
     bool isAdditionalThreadsQuantityChanged = false;
 
     int timeout;
-    infoTimer.start();
+    m_infoTimer.start();
     while(m_systemThreadRunnableSign)
     {
         QThread::msleep(10);
 
         //check repeated tasks
-        std::unique_lock<std::mutex> locker(repeatTaskMutex);
-        for(auto it = repeatedTaskArray.begin(); it != repeatedTaskArray.end(); it++)
+        std::unique_lock<std::mutex> locker(m_repeatTaskMutex);
+        for(auto it = m_repeatedTaskArray.begin(); it != m_repeatedTaskArray.end(); it++)
         {
             timeout = it->m_qt_timer.elapsed();
 
@@ -181,7 +181,7 @@ int cAdvThreadPool::startPoolMainFunction()
         //notification about suspicious behavior
         std::chrono::time_point<std::chrono::high_resolution_clock> currentTime = std::chrono::high_resolution_clock::now();
 
-        for (auto &it : threadsArray)
+        for (auto &it : m_threadsArray)
         {
             cAdvThread::eThreadType l_iThreadType = it->getThreadType();
             if(l_iThreadType == cAdvThread::eThreadType::THREAD_SHARED) //SHORT_TASK || REPEAT_TASK
@@ -200,9 +200,9 @@ int cAdvThreadPool::startPoolMainFunction()
         }
 
         //delete extra long threads which was stoped
-        additionalThreadsMutex.lock();
+        m_additionalThreadsMutex.lock();
         isAdditionalThreadsQuantityChanged = false;
-        additionalThreadsArray.remove_if(
+        m_additionalThreadsArray.remove_if(
         [&isAdditionalThreadsQuantityChanged](adv_thread_ptr thr)
         {
             if(thr->isStoped())
@@ -214,7 +214,7 @@ int cAdvThreadPool::startPoolMainFunction()
             else
                 return false;
         });
-        additionalThreadsMutex.unlock();
+        m_additionalThreadsMutex.unlock();
         if(isAdditionalThreadsQuantityChanged)
         {
             int longTaskCounter = cAdvThreadPool::getInstance().getLongTaskQuantity();
@@ -242,7 +242,7 @@ void cAdvThreadPool::startThreadPool(int unsharedThreadsQuantity, int sharedThre
         getSettings().m_poolModes = poolModes;
     }
 
-    gens<10> g;
+    [[maybe_unused]] gens<10> g;
     if(!getSettings().m_isPoolStarted)
     {
         getSettings().m_isPoolStarted = cAdvThreadPool::getInstance().createThreadPool(unsharedThreadsQuantity, sharedThreadsQuantity);
@@ -275,7 +275,7 @@ adv_thread_ptr cAdvThreadPool::getFreeThread(int &_thread_id, int _runType)
 {
     adv_thread_ptr pFoundedThread = nullptr;
     size_t minTasks = UINT32_MAX;
-    for (auto &pThread : threadsArray)
+    for (auto &pThread : m_threadsArray)
     {
         cAdvThread::eThreadType threadType = pThread->getThreadType();
         if(threadType == cAdvThread::eThreadType::THREAD_NOT_SHARED &&
@@ -305,20 +305,20 @@ adv_thread_ptr cAdvThreadPool::getFreeThread(int &_thread_id, int _runType)
 
 adv_thread_ptr cAdvThreadPool::createSystemPoolThread()
 {
-    if(systemPoolThread != nullptr)
+    if(m_systemPoolThread != nullptr)
         return nullptr;
 
     adv_thread_ptr pThread(new cAdvThread(0, m_poolSettings.m_coreQuantity));
-    systemPoolThread = pThread;
-    systemPoolThread->setThreadType(cAdvThread::eThreadType::THREAD_NOT_SHARED);
+    m_systemPoolThread = pThread;
+    m_systemPoolThread->setThreadType(cAdvThread::eThreadType::THREAD_NOT_SHARED);
 
-    return systemPoolThread;
+    return m_systemPoolThread;
 }
 
 int cAdvThreadPool::getLongTaskQuantity()
 {
     int longTaskCounter = 0;
-    for(adv_thread_ptr &threadObject : threadsArray)
+    for(adv_thread_ptr &threadObject : m_threadsArray)
     {
         cAdvThread::eThreadType threadType = threadObject->getThreadType();
         if(threadType == cAdvThread::eThreadType::THREAD_NOT_SHARED &&
@@ -326,8 +326,8 @@ int cAdvThreadPool::getLongTaskQuantity()
             longTaskCounter++;
     }
 
-    std::unique_lock<std::mutex> locker(additionalThreadsMutex);
-    for(adv_thread_ptr &threadObject : additionalThreadsArray)
+    std::unique_lock<std::mutex> locker(m_additionalThreadsMutex);
+    for(adv_thread_ptr &threadObject : m_additionalThreadsArray)
     {
         cAdvThread::eThreadType threadType = threadObject->getThreadType();
         if(threadType == cAdvThread::eThreadType::THREAD_NOT_SHARED_EXTRA &&
@@ -339,20 +339,20 @@ int cAdvThreadPool::getLongTaskQuantity()
 
 void cAdvThreadPool::stopAll()
 {
-    if(systemPoolThread != nullptr)
+    if(m_systemPoolThread != nullptr)
     {
-        systemPoolThread->stop();
-        systemPoolThread->wait();
-        systemPoolThread.reset();
+        m_systemPoolThread->stop();
+        m_systemPoolThread->wait();
+        m_systemPoolThread.reset();
     }
 
-    for(adv_thread_ptr &it : threadsArray)
+    for(adv_thread_ptr &it : m_threadsArray)
     {
         it->stop();
     }
 
-    std::unique_lock<std::mutex> locker(additionalThreadsMutex);
-    for(adv_thread_ptr &it : additionalThreadsArray)
+    std::unique_lock<std::mutex> locker(m_additionalThreadsMutex);
+    for(adv_thread_ptr &it : m_additionalThreadsArray)
     {
         it->stopWithoutDeleteExtraThread();
     }
@@ -360,20 +360,20 @@ void cAdvThreadPool::stopAll()
 
 void cAdvThreadPool::waitAll()
 {
-    for(adv_thread_ptr &it : threadsArray)
+    for(adv_thread_ptr &it : m_threadsArray)
     {
         it->wait();
     }
 
-    threadsArray.clear();
+    m_threadsArray.clear();
 
-    std::unique_lock<std::mutex> locker(additionalThreadsMutex);
-    for(adv_thread_ptr &it : additionalThreadsArray)
+    std::unique_lock<std::mutex> locker(m_additionalThreadsMutex);
+    for(adv_thread_ptr &it : m_additionalThreadsArray)
     {
         it->wait();
     }
 
-    additionalThreadsArray.clear();
+    m_additionalThreadsArray.clear();
 }
 
 void cAdvThreadPool::deleteExtraThread(int _id, bool _sign)
@@ -383,9 +383,9 @@ void cAdvThreadPool::deleteExtraThread(int _id, bool _sign)
     else*/
     {
         {
-            std::unique_lock<std::mutex> locker(additionalThreadsMutex);
+            std::unique_lock<std::mutex> locker(m_additionalThreadsMutex);
 
-            for(adv_thread_ptr thr : additionalThreadsArray)
+            for(adv_thread_ptr thr : m_additionalThreadsArray)
             {
                 if(thr->getThreadNumber() == _id)
                 {
@@ -420,18 +420,18 @@ void cAdvThreadPool::requestState()
                                  m_poolSettings.m_coreQuantity,
                                  m_poolSettings.getAffinityMode());
 
-    if(systemPoolThread != nullptr)
+    if(m_systemPoolThread != nullptr)
     {
-        int id = systemPoolThread->getThreadNumber();
-        QString who = systemPoolThread->getWho();
-        int runType =  systemPoolThread->getRunType();
-        m_emitter->sendSignal_NewThread(id, systemPoolThread->getThreadType());
+        int id = m_systemPoolThread->getThreadNumber();
+        QString who = m_systemPoolThread->getWho();
+        int runType =  m_systemPoolThread->getRunType();
+        m_emitter->sendSignal_NewThread(id, m_systemPoolThread->getThreadType());
         m_emitter->sendSignal_Who_forUnsharedThread(id, runType, who);
         int longTaskCounter = cAdvThreadPool::getInstance().getLongTaskQuantity();
         m_emitter->sendSignal_longTaskQuantity(longTaskCounter);
     }
 
-    for (auto it = threadsArray.begin(); it != threadsArray.end(); it++)
+    for (auto it = m_threadsArray.begin(); it != m_threadsArray.end(); it++)
     {
         int id = (*it)->getThreadNumber();
         QString who = (*it)->getWho();
@@ -445,7 +445,7 @@ void cAdvThreadPool::requestState()
             m_emitter->sendSignal_longTaskQuantity(longTaskCounter);
         }
         else
-            m_emitter->sendSignal_MeanCountTasks(id,  QString::number((*it)->getAllTaskCount()));
+            m_emitter->sendSignal_AverageQuantityOfTasks(id,  QString::number((*it)->getAllTaskCount()));
     }
 
     for(int i=1; i<=(m_poolSettings.getQuantityUnsharedThreads() + m_poolSettings.getQuantitySharedThreads()); i++)
@@ -466,14 +466,14 @@ void cAdvThreadPool::requestState()
 
 void cAdvThreadPool::addRepeatedTask(runnable_closure _task, int _id, int _timePeriod, QString _who)
 {
-    std::unique_lock<std::mutex> locker(repeatTaskMutex);
+    std::unique_lock<std::mutex> locker(m_repeatTaskMutex);
     cRepeatedTaskAdapter wrapper(_task);
     wrapper.m_qt_timer.start();
     wrapper.m_id = _id;
     wrapper.m_timePeriod = _timePeriod;
-    repeatedTaskArray.push_back(wrapper);
+    m_repeatedTaskArray.push_back(wrapper);
 
-    m_emitter->sendSignal_AddRepeatTask(_id, _timePeriod, _who, repeatedTaskArray.size());
+    m_emitter->sendSignal_AddRepeatTask(_id, _timePeriod, _who, m_repeatedTaskArray.size());
 }
 
 bool cAdvThreadPool::stopRepeatTask(int taskID)
@@ -483,30 +483,30 @@ bool cAdvThreadPool::stopRepeatTask(int taskID)
 
 bool cAdvThreadPool::stopRunnable_RepeatTask(int _taskID)
 {
-    std::unique_lock<std::mutex> locker(repeatTaskMutex);
-    auto it = std::find_if(repeatedTaskArray.begin(), repeatedTaskArray.end(),
+    std::unique_lock<std::mutex> locker(m_repeatTaskMutex);
+    auto it = std::find_if(m_repeatedTaskArray.begin(), m_repeatedTaskArray.end(),
                            [_taskID](cRepeatedTaskAdapter &wrap)->bool
                             {if(wrap.m_id == _taskID) return true;
                                 else return false;});
-    if(it == repeatedTaskArray.end())
+    if(it == m_repeatedTaskArray.end())
     {
         return false;
     }
 
     //it->run(CAdvThread::eRUN_MODES::STOP);
-    repeatedTaskArray.erase(it);
+    m_repeatedTaskArray.erase(it);
     m_emitter->sendSignal_DeleteRepeatTask(_taskID);
     return true;
 }
 
 bool cAdvThreadPool::updateTimePeriodForRepeatTask(int _taskID, int _newTimePeriod)
 {
-    std::unique_lock<std::mutex> locker(repeatTaskMutex);
-    auto it = std::find_if(repeatedTaskArray.begin(), repeatedTaskArray.end(),
+    std::unique_lock<std::mutex> locker(m_repeatTaskMutex);
+    auto it = std::find_if(m_repeatedTaskArray.begin(), m_repeatedTaskArray.end(),
                            [_taskID](cRepeatedTaskAdapter &wrap)->bool
                             {if(wrap.m_id == _taskID) return true;
                                 else return false;});
-    if(it == repeatedTaskArray.end())
+    if(it == m_repeatedTaskArray.end())
     {
         return false;
     }
@@ -553,7 +553,7 @@ void cAdvThreadPool::changeAffinityMask(int _threadID, int _coreID, bool _state)
     {
         int mask = calculateCoreMask(m_poolSettings.m_masks[_threadID-1], _coreID, _state);
 
-        auto it = std::find_if(threadsArray.begin(), threadsArray.end(),
+        auto it = std::find_if(m_threadsArray.begin(), m_threadsArray.end(),
                    [_threadID](adv_thread_ptr _thread)
                     {
                         if(_thread->getThreadNumber() == _threadID)
@@ -562,7 +562,7 @@ void cAdvThreadPool::changeAffinityMask(int _threadID, int _coreID, bool _state)
                     }
                 );
 
-        if(it != threadsArray.end())
+        if(it != m_threadsArray.end())
         {
             (*it)->setCoreMask(mask);
             m_poolSettings.m_masks[_threadID-1] = mask;

@@ -2,6 +2,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include "AdvThreadPool/AdvThreadPool.h"
 
 Tasks::Tasks()
 {
@@ -42,20 +43,20 @@ void LongTaskContainer::stopLongTaskFunction()
 
 ShortTaskGenerator::ShortTaskGenerator()
 {
-    std::cout << "ShorTaskGenerator constructor" << std::endl;
+    std::cout << "ShortTaskGenerator constructor" << std::endl;
 }
 
 ShortTaskGenerator::~ShortTaskGenerator()
 {
     m_runnableSign = false;
-    std::cout << "ShorTaskGenerator destructor" << std::endl;
+    std::cout << "ShortTaskGenerator destructor" << std::endl;
 }
 
-qint32 ShortTaskGenerator::generatorMainFunction(qint32 shortTaskQuantity)
+qint32 ShortTaskGenerator::generate([[maybe_unused]] qint32 _shortTaskQuantity)
 {
-    /*while(m_runnableSign)
+    while(m_runnableSign)
     {
-        for(int i=0; i<shortTaskQuantity; ++i)
+        for(int i=0; i<_shortTaskQuantity; ++i)
         {
             //1)create new short task (usual variant)
             QString nameShortTask = QString("Short Task %1").arg(i);
@@ -68,30 +69,32 @@ qint32 ShortTaskGenerator::generatorMainFunction(qint32 shortTaskQuantity)
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    }*/
+    }
     return 0;
 }
 
-qint32 ShortTaskGenerator::shortTaskFunction(QString taskName)
+qint32 ShortTaskGenerator::shortTaskFunction([[maybe_unused]] QString _taskName)
 {
+    std::cout << "ShortTaskFunction:" << _taskName.toStdString() << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return 0;
 }
 
-void ShortTaskGenerator::stopGenerator()
+void ShortTaskGenerator::stop()
 {
     m_runnableSign = false;
 }
 
-bool ShortTaskGenerator::start(qint32 shortTaskQuantity)
+bool ShortTaskGenerator::start([[maybe_unused]] qint32 _shortTaskQuantity)
 {
     if(m_runnableSign)
         return false;
 
-    /*m_runnableSign = true;
-    auto tupleWithArguments = std::make_tuple<>(shortTaskQuantity);
+    m_runnableSign = true;
+    auto tupleWithArguments = std::make_tuple<>(_shortTaskQuantity);
     auto pGeneratorMainTask = new cLongTask<ShortTaskGenerator, qint32, qint32>(this,
-                                            &ShortTaskGenerator::generatorMainFunction,
-                                            &ShortTaskGenerator::stopGenerator,
+                                            &ShortTaskGenerator::generate,
+                                            &ShortTaskGenerator::stop,
                                             QString("Generator Main Task"),
                                             tupleWithArguments);
 
@@ -99,5 +102,7 @@ bool ShortTaskGenerator::start(qint32 shortTaskQuantity)
     if(pFuture == nullptr)
         return false;
     else
-        return true;*/
+        return true;
+
+    return false;
 }

@@ -34,16 +34,16 @@ private://fields
     cThreadPoolSettings m_poolSettings;
     bool m_systemThreadRunnableSign = false;
     cLongTask<cAdvThreadPool, int> *m_systemTymerRunnable = nullptr;//system runnable for repeated tasks control
-    adv_thread_ptr systemPoolThread;//thread for internal long task of pool
+    adv_thread_ptr m_systemPoolThread;//thread for internal long task of pool
 
-    std::vector<adv_thread_ptr> threadsArray;//array of pool's threads
-    std::list<adv_thread_ptr> additionalThreadsArray;//additional array of pool's threads (for Long Tasks)
-    std::mutex additionalThreadsMutex;
+    std::vector<adv_thread_ptr> m_threadsArray;//array of pool's threads
+    std::list<adv_thread_ptr> m_additionalThreadsArray;//additional array of pool's threads (for Long Tasks)
+    std::mutex m_additionalThreadsMutex;
 
-    std::vector<cRepeatedTaskAdapter> repeatedTaskArray;//array for repeated task (only for USE_REPEATED_TASK_MODE)
-    std::mutex repeatTaskMutex;//mutex for repeat task array
+    std::vector<cRepeatedTaskAdapter> m_repeatedTaskArray;//array for repeated task (only for USE_REPEATED_TASK_MODE)
+    std::mutex m_repeatTaskMutex;//mutex for repeat task array
     cAdvPoolEmitter* m_emitter = nullptr;//object-emitter for sending signals to GUI
-    QElapsedTimer infoTimer;//timer of system thread for sending info to GUI
+    QElapsedTimer m_infoTimer;//timer of system thread for sending info to GUI
 
 private://methods
     cAdvThreadPool();//( Mayers singletone)

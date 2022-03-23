@@ -4,8 +4,10 @@ etc
 bin
 src-build
 src-build-qt
+build-project_all_qmake-Desktop_Qt_6_2_4_MinGW_64_bit-Debug
 moc
 ui
+.vs
 *.vcxproj
 *.sln
 *.filters

@@ -26,7 +26,7 @@ public://data
     eThreadPoolMode m_threadPoolMode = eThreadPoolMode::ORDINARY_MODE;//field is not serialized
     eAffinityMode m_affinityMode = eAffinityMode::NO_AFFINITY;//field is serialized
     eStretchMode m_stretchMode = eStretchMode::NO_STRETCH;//field is not serialized
-
+/*
 public://methods
     cPoolModes& operator = (const cPoolModes& toCopy)
     {
@@ -34,7 +34,7 @@ public://methods
         m_affinityMode = toCopy.m_affinityMode;
         m_stretchMode = toCopy.m_stretchMode;
         return *this;
-    }
+    }*/
 };
 
 class ExceptionHoldOverTask

@@ -53,7 +53,7 @@ bool cAdvThread::appendRunnableTask(runnable_closure _run, int _runType)
 
         if(_runType == eRunnableType::SHORT_TASK || _runType == eRunnableType::REPEAT_TASK)
         {
-            cAdvThreadPool::getInstance().getEmitter()->sendSignal_MeanCountTasks(getThreadNumber(),
+            cAdvThreadPool::getInstance().getEmitter()->sendSignal_AverageQuantityOfTasks(getThreadNumber(),
                                 QString("%1/%2").arg(m_averageTaskQuantity).arg(m_taskArray.size()));
         }
 

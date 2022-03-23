@@ -9,9 +9,11 @@ DESTDIR  = ../../lib
 
 QT     += core widgets xml
 
-CONFIG	+= staticlib qt warn_on debug c++11
+#CONFIG += staticlib
+CONFIG	+= qt warn_on debug c++17
 
-#DEFINES += WINDOWS_OS
+#DEFINES += BUILD_STATIC
+DEFINES += BUILD_DLL
 
 FORMS += forms/threadpoolshell.ui
 
